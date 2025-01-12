@@ -1,12 +1,10 @@
--- Ensure settings are loaded
-if not _G.Settings or not _G.Settings.webhook or _G.Settings.webhook == "" then
-    warn("⚠️ Webhook URL is not set in _G.Settings. Please define it in your executor script.")
-    return
-end
+_G.Settings = {
+    ["webhook"] = "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN" -- Replace with your webhook URL
+}
 
 local HttpService = game:GetService("HttpService")
 
--- Berry Images
+-- Berry Images (Example)
 local berryImages = {
     ["White Cloud Berry"] = "https://cdn.discordapp.com/attachments/1301165217194971158/1327909480750387232/White_Cloud_Berry.webp",
     ["Blue Icicle Berry"] = "https://cdn.discordapp.com/attachments/1301165217194971158/1327909470067757127/Blue_Icicle_Berry.webp",
@@ -18,7 +16,7 @@ local berryImages = {
     ["Yellow Star Berry"] = "https://cdn.discordapp.com/attachments/1301165217194971158/1327909382377312256/Yellow_Star_Berry.webp",
 }
 
--- Send Discord Embed Notification
+-- Function to send a webhook with embed
 local function sendDiscordEmbed(playerName, berryName, berryColor)
     local imageUrl = berryImages[berryName] or ""
     local data = {
@@ -32,10 +30,23 @@ local function sendDiscordEmbed(playerName, berryName, berryColor)
     }
 
     local jsonData = HttpService:JSONEncode(data)
-    HttpService:PostAsync(_G.Settings.webhook, jsonData, Enum.HttpContentType.ApplicationJson)
+
+    -- Debugging: Output the data you're sending to the webhook
+    print("Sending data to Discord:", jsonData)
+
+    -- Send the request and capture success/failure
+    local success, response = pcall(function()
+        return HttpService:PostAsync(_G.Settings.webhook, jsonData, Enum.HttpContentType.ApplicationJson)
+    end)
+
+    if success then
+        print("Webhook sent successfully.")
+    else
+        warn("Error sending webhook:", response)
+    end
 end
 
--- Example Berry Loot Event
+-- Example Berry Loot Event (You can replace this with actual event handling in your game)
 game.Workspace.BerryLootedEvent.OnClientEvent:Connect(function(berryName, berryColor)
     local player = game.Players.LocalPlayer
     sendDiscordEmbed(player.Name, berryName, berryColor)

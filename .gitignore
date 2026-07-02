@@ -5,3 +5,4 @@ web/dist/
 *.log
 .env
 .DS_Store
+*.tsbuildinfo

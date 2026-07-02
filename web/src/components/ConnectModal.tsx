@@ -204,6 +204,7 @@ export default function ConnectModal({ platform, accountId, identityId, mode = '
             width={VIEW_W}
             height={VIEW_H}
             tabIndex={0}
+            data-remote-canvas
             className="w-full block outline-none cursor-default"
             {...handlers}
           />

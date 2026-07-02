@@ -42,11 +42,17 @@ export default function Layout({ username, onLogout, children }: {
 }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const loc = useLocation();
+  const parts = loc.pathname.split('/').filter(Boolean);
+  // Trong "Studio kênh" mọi tab con dùng chung một key để không remount shell.
+  const animKey = parts[0] === 'channels' && parts[1] ? `/channels/${parts[1]}` : loc.pathname;
 
-  // ⌘K / Ctrl+K mở command palette (bỏ qua khi đang gõ trong ô nhập)
+  // ⌘K / Ctrl+K mở command palette. Bỏ qua khi trình duyệt nhúng (canvas) đang
+  // nhận phím — tránh cướp phím của luồng đăng nhập từ xa.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        const el = document.activeElement as HTMLElement | null;
+        if (el?.hasAttribute('data-remote-canvas')) return;
         e.preventDefault();
         setPaletteOpen((v) => !v);
       }
@@ -109,7 +115,9 @@ export default function Layout({ username, onLogout, children }: {
       <main className="flex-1 overflow-y-auto">
         <AppBar onOpenPalette={() => setPaletteOpen(true)} />
         <div className="max-w-6xl mx-auto px-6 py-6">
-          <div key={loc.pathname} className="animate-page">{children}</div>
+          {/* Key theo section, KHÔNG theo pathname đầy đủ — nếu không, chuyển tab
+              trong "Studio kênh" (/channels/:id/*) sẽ remount cả shell và nạp lại kênh. */}
+          <div key={animKey} className="animate-page">{children}</div>
         </div>
       </main>
 

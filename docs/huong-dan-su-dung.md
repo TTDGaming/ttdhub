@@ -5,7 +5,34 @@
 Mở `http://localhost:3689` (hoặc URL tunnel), tạo tài khoản quản trị. Tài khoản này chỉ dùng
 để đăng nhập vào tool — không liên quan gì tới tài khoản mạng xã hội.
 
-## Kết nối kênh
+## Kết nối tài khoản quản lý (khuyên dùng cho YouTube)
+
+Thay vì đăng nhập từng kênh, bạn đăng nhập **một** tài khoản Google được cấp quyền quản lý nhiều kênh:
+
+1. Trên YouTube, với mỗi kênh bạn muốn quản lý: vào **Cài đặt → Quyền** (hoặc trang Kênh thương hiệu)
+   và thêm email Google của bạn với vai trò **Người quản lý** (Manager).
+2. Trong MS Hub, vào **Kênh → "Kết nối tài khoản quản lý"**, đăng nhập tài khoản Google đó.
+3. Bấm **Hoàn tất** — tool tự phát hiện **tất cả kênh** mà tài khoản có quyền và thêm vào cùng một
+   nhóm. Bấm **"Quét kênh"** bất cứ lúc nào để cập nhật khi được cấp thêm/bớt quyền.
+
+Ưu điểm: một lần đăng nhập, quản lý mọi kênh; khi hết phiên chỉ cần đăng nhập lại một lần cho cả nhóm.
+
+## Trang "Studio kênh" (4 tab)
+
+Bấm vào một kênh để mở trang quản lý giống YouTube Studio, gồm 4 tab:
+
+- **Tổng quan kênh**: số liệu tóm tắt, biểu đồ 48h, video gần đây, bình luận mới, và thiết lập kênh
+  (kiếm tiền/RPM/ghi chú/nhãn).
+- **Nội dung**: bảng video (ảnh thu nhỏ, view/like/bình luận, ngày đăng) — **tải xuống** hoặc **xóa**
+  từng video. Bấm "Đồng bộ video" để cập nhật.
+- **Số liệu phân tích**: biểu đồ view/follower/like theo 48h · 7 · 30 · 90 ngày, cột tăng trưởng
+  theo giờ/ngày, và bảng xếp hạng video xem nhiều nhất.
+- **Cộng đồng**: hộp thư bình luận gần đây trên các video của kênh.
+
+> Danh sách video + số liệu đọc từ trang công khai (ổn định). Tải/xóa video và bình luận thao tác qua
+> Studio nên cần phiên đăng nhập còn hiệu lực; nếu YouTube đổi giao diện có thể cần cập nhật tool.
+
+## Kết nối kênh độc lập
 
 1. Vào **Kênh** → bấm **+ YouTube / + TikTok / + Facebook**.
 2. Một cửa sổ trình duyệt hiện ra ngay trong web app — đây là Chromium chạy trên server,

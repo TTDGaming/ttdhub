@@ -46,7 +46,8 @@ function pickNextJob() {
   return rows.find((r) => {
     if (r.account_status !== 'active') return false;
     if (r.identity_id && r.identity_status && r.identity_status !== 'active') return false;
-    const key = accountKey(r);
+    // r.id là id của JOB (từ j.*) — dùng account_id để tạo profile key cho đúng.
+    const key = accountKey({ id: r.account_id, identity_id: r.identity_id });
     return !busyProfiles.has(key);
   }) || null;
 }

@@ -174,7 +174,9 @@ export default function Channels() {
                 </div>
               </div>
               {channels.length === 0 ? (
-                <div className="text-sm text-muted px-1">Không có kênh khớp bộ lọc.</div>
+                <div className="text-sm text-muted px-1">
+                  Chưa phát hiện kênh nào cho tài khoản này — bấm <b>Quét kênh</b> sau khi đã được cấp quyền quản lý.
+                </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {channels.map((acc) => <ChannelCard key={acc.id} acc={acc} />)}

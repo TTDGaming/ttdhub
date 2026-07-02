@@ -17,15 +17,17 @@ const LABELS: Record<string, string> = {
 export default function AppBar({ onOpenPalette }: { onOpenPalette: () => void }) {
   const loc = useLocation();
   const parts = loc.pathname.split('/').filter(Boolean);
+  const channelId = parts[0] === 'channels' ? parts[1] : undefined;
   const [channelName, setChannelName] = useState<string | null>(null);
 
+  // Chỉ nạp tên kênh khi ĐỔI kênh — không nạp lại khi chuyển tab con trong Studio.
   useEffect(() => {
-    if (parts[0] === 'channels' && parts[1]) {
-      api.get<Account>(`/api/accounts/${parts[1]}`).then((a) => setChannelName(a.name)).catch(() => setChannelName(null));
+    if (channelId) {
+      api.get<Account>(`/api/accounts/${channelId}`).then((a) => setChannelName(a.name)).catch(() => setChannelName(null));
     } else {
       setChannelName(null);
     }
-  }, [loc.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [channelId]);
 
   const crumbs: { label: string; to?: string }[] = [];
   if (parts.length === 0) {

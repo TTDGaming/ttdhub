@@ -87,8 +87,9 @@ export async function fetchStats(context, account) {
  */
 export async function upload(context, job, onProgress) {
   // Kênh được quản lý (identity đăng nhập là Người quản lý): chuyển kênh đang
-  // hoạt động sang đúng kênh đích trước khi đăng.
-  await switchToChannel(context, job._account).catch(() => {});
+  // hoạt động sang đúng kênh đích trước khi đăng. KHÔNG nuốt lỗi — nếu chuyển
+  // kênh thất bại, để job báo lỗi thay vì đăng nhầm sang kênh khác.
+  await switchToChannel(context, job._account);
   const page = await context.newPage();
   try {
     await page.goto('https://www.youtube.com/upload', { waitUntil: 'domcontentloaded', timeout: 60000 });
@@ -253,6 +254,15 @@ export async function discoverChannels(context) {
       }).then((arr) => arr.map((a) => ({ name: a.name, avatarUrl: a.photo, handle: null, pageId: null, isSelf: false })));
     }
 
+    // Loại trùng (đường dự phòng có thể lặp cùng một kênh).
+    const seen = new Set();
+    channels = channels.filter((c) => {
+      const k = c.externalId || c.pageId || c.handle || c.name;
+      if (!k || seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+
     // Resolve UCID từ @handle (trang công khai) cho các kênh có handle.
     for (const ch of channels) {
       if (!ch.externalId && ch.handle) {
@@ -299,7 +309,10 @@ function channelUrl(account, suffix = '') {
   if (account.external_id && account.external_id.startsWith('UC')) {
     return `https://www.youtube.com/channel/${account.external_id}${suffix}`;
   }
-  if (account.handle) return `https://www.youtube.com/${account.handle}${suffix}`;
+  if (account.handle) {
+    const h = account.handle.startsWith('@') ? account.handle : `@${account.handle}`;
+    return `https://www.youtube.com/${h}${suffix}`;
+  }
   return null;
 }
 
@@ -335,7 +348,8 @@ export async function fetchVideos(context, account) {
       const out = [];
       const walk = (o, d = 0) => {
         if (!o || typeof o !== 'object' || d > 45) return;
-        const v = o.richItemRenderer?.content?.videoRenderer || o.gridVideoRenderer || (o.videoId && o.title ? o : null);
+        // Chỉ nhận video từ trang /videos của kênh (tránh bắt nhầm cấu trúc video khác).
+        const v = o.richItemRenderer?.content?.videoRenderer || o.gridVideoRenderer || null;
         if (v && v.videoId) {
           out.push({
             videoId: v.videoId,
@@ -440,6 +454,9 @@ export async function downloadVideo(context, account, videoId, destPath) {
   const page = await context.newPage();
   try {
     await page.goto(`https://studio.youtube.com/video/${videoId}/edit`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    if (/accounts\.google\.com/.test(page.url())) {
+      throw new Error('Phiên đăng nhập YouTube đã hết hạn — hãy kết nối lại');
+    }
     await sleep(2500);
     await page.locator('#options-button').first().click({ timeout: 15000 });
     const [download] = await Promise.all([

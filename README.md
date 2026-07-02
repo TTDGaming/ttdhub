@@ -6,9 +6,16 @@ và biểu đồ view 48 giờ của từng kênh — **không cần API key, kh
 
 ## Tính năng
 
-- **Kết nối kênh bằng đăng nhập thật**: bấm "+ YouTube / TikTok / Facebook", một trình duyệt
-  Chromium chạy trên server hiện ra ngay trong web app (stream qua WebSocket) — bạn đăng nhập
-  như bình thường (hỗ trợ cả 2FA), tool tự nhận diện kênh và lưu phiên.
+- **Tài khoản quản lý (một Google login → nhiều kênh)**: đăng nhập **một** tài khoản Google
+  đã được cấp vai trò *Người quản lý* cho nhiều kênh YouTube (qua quyền Kênh thương hiệu). Tool
+  **tự phát hiện toàn bộ kênh** mà tài khoản có quyền, theo dõi số liệu và đăng/xóa/tải video trên
+  từng kênh — không phải đăng nhập lại từng kênh. Vẫn hỗ trợ thêm **kênh độc lập** như trước.
+- **Trang "Studio kênh" như YouTube Studio**: mở một kênh sẽ có 4 tab —
+  *Tổng quan kênh · Nội dung · Số liệu phân tích · Cộng đồng*: xem danh sách video (view/like/bình
+  luận), tải/xóa video, biểu đồ phân tích sâu, và hộp thư bình luận.
+- **Kết nối kênh bằng đăng nhập thật**: một trình duyệt Chromium chạy trên server hiện ra ngay
+  trong web app (stream qua WebSocket) — bạn đăng nhập như bình thường (hỗ trợ cả 2FA), tool tự
+  nhận diện kênh và lưu phiên. Không cần API key.
 - **Cách ly tuyệt đối giữa các tài khoản**: mỗi kênh có một profile trình duyệt riêng
   (cookie, cache, localStorage tách biệt hoàn toàn) — an toàn khi quản lý nhiều tài khoản cùng nền tảng.
 - **Đăng video hàng loạt**: chọn nhiều video × nhiều kênh, đặt tiêu đề/mô tả/tags/chế độ hiển thị,
@@ -22,9 +29,12 @@ và biểu đồ view 48 giờ của từng kênh — **không cần API key, kh
   tổng doanh thu toàn hệ thống, xuất CSV. Hỗ trợ USD/VND/EUR.
 - **Trình duyệt kênh**: mở lại trình duyệt cách ly của kênh đã kết nối ngay trong web app —
   đăng nhập lại khi hết phiên (không phải gỡ kênh), kiểm tra kênh mà không đụng máy chủ.
+- **Giao diện doanh nghiệp**: sáng/tối/theo hệ thống, thanh lệnh nhanh **⌘K** (tìm kênh/trang/lệnh),
+  breadcrumb, thông báo, nhãn/nhóm kênh, tìm kiếm & lọc, phản hồi bằng toast.
 - **Quản lý từ xa**: chạy trên Linux/Windows, truy cập qua trình duyệt; hỗ trợ Cloudflare Tunnel
   (không cần mở port, không cần IP tĩnh).
-- **Bảo mật**: đăng nhập quản trị bắt buộc, cookie phiên HttpOnly, dữ liệu lưu 100% cục bộ.
+- **Bảo mật**: đăng nhập quản trị bắt buộc, cookie phiên HttpOnly, dữ liệu lưu 100% cục bộ. Mỗi
+  tài khoản/identity dùng một profile trình duyệt cách ly riêng.
 
 ## Cài đặt
 

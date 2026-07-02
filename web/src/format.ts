@@ -27,6 +27,27 @@ export function fmtDayHour(ts: number): string {
   return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(ts));
 }
 
+export function fmtMoney(n: number | null | undefined, currency = 'USD'): string {
+  if (n == null) return '—';
+  return new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: currency === 'VND' ? 0 : 2,
+  }).format(n);
+}
+
+export function fmtPercent(n: number | null | undefined): string {
+  if (n == null || !Number.isFinite(n)) return '—';
+  const s = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 }).format(Math.abs(n) * 100);
+  return `${n > 0 ? '+' : n < 0 ? '−' : ''}${s}%`;
+}
+
+/** 'YYYY-MM' → 'T7/2026' */
+export function fmtMonth(m: string): string {
+  const [y, mo] = m.split('-');
+  return `T${Number(mo)}/${y}`;
+}
+
 export const PLATFORM_LABEL: Record<string, string> = {
   youtube: 'YouTube',
   tiktok: 'TikTok',

@@ -7,6 +7,8 @@ import { authRouter, requireAuth } from './auth.js';
 import { accountsRouter } from './routes/accounts.js';
 import { uploadsRouter } from './routes/uploads.js';
 import { statsRouter } from './routes/stats.js';
+import { revenueRouter } from './routes/revenue.js';
+import { settingsRouter } from './routes/settings.js';
 import { setupWebSocket } from './ws.js';
 import { startQueue } from './services/queue.js';
 import { startPoller } from './services/poller.js';
@@ -21,6 +23,8 @@ app.use('/api/auth', authRouter);
 app.use('/api/accounts', requireAuth, accountsRouter);
 app.use('/api/uploads', requireAuth, uploadsRouter);
 app.use('/api/stats', requireAuth, statsRouter);
+app.use('/api/revenue', requireAuth, revenueRouter);
+app.use('/api/settings', requireAuth, settingsRouter);
 
 // Frontend build (SPA)
 if (fs.existsSync(WEB_DIST)) {

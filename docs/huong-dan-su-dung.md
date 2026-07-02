@@ -51,6 +51,30 @@ Chỉ số theo nền tảng: YouTube có tổng view + subscriber + số video;
 tổng tim + số video (TikTok không công bố tổng view tài khoản); Facebook có follower + likes
 của Trang.
 
+## Tốc độ tăng trưởng
+
+Trong chi tiết kênh, dưới hàng nút chọn khoảng thời gian có **% tăng trưởng** view/follower của
+khoảng đang xem, và hai biểu đồ cột **View mới / Follower mới** theo giờ (khoảng 48h) hoặc theo
+ngày (7/30/90 ngày) — nhìn ngay được kênh đang tăng tốc hay chững lại.
+
+## Kiếm tiền (BKT) & doanh thu
+
+- Trong **chi tiết kênh → Thiết lập kênh**: đặt trạng thái **Đã BKT / Chưa BKT / Chưa rõ** và
+  **RPM** (doanh thu ước tính trên 1000 view). Nhãn BKT hiển thị ở mọi danh sách kênh.
+- Trang **Doanh thu**:
+  - **Ghi nhận doanh thu** thực nhận theo tháng cho từng kênh (AdSense, Creator Rewards...).
+  - **Ước tính 30 ngày** = RPM × view 30 ngày (tự tính với kênh theo dõi được tổng view — YouTube).
+  - Biểu đồ doanh thu 12 tháng toàn hệ thống, bảng doanh thu từng kênh, tổng doanh thu cả hệ thống.
+  - **Xuất CSV** toàn bộ dữ liệu doanh thu; trang Tổng quan cũng có xuất CSV số liệu kênh.
+- Đổi đơn vị tiền tệ (USD/VND/EUR) trong **Cài đặt**.
+
+## Kênh hết phiên đăng nhập
+
+Khi một job đăng video phát hiện phiên hết hạn, kênh được đánh dấu **"Cần đăng nhập lại"** và các
+job còn lại của kênh tạm dừng. Mở chi tiết kênh → bấm **Đăng nhập lại** (hoặc **🌐 Trình duyệt
+kênh**) → đăng nhập trong trình duyệt nhúng → bấm Hoàn tất → bấm "Chạy lại" các job lỗi.
+Nút Trình duyệt kênh cũng dùng để kiểm tra kênh bất kỳ lúc nào mà không cần gỡ/kết nối lại.
+
 ## Gỡ kênh
 
 Chi tiết kênh → **Gỡ kênh**: xóa vĩnh viễn profile trình duyệt (toàn bộ cookie đăng nhập),

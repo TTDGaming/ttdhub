@@ -21,6 +21,8 @@ export interface Account {
   page_url: string | null;
   status: 'connecting' | 'active' | 'error';
   note: string | null;
+  monetized: 'yes' | 'no' | 'unknown';
+  rpm: number | null;
   created_at: number;
   stats: AccountStats | null;
 }
@@ -36,7 +38,47 @@ export interface OverviewAccount {
   likes: number | null;
   views48h: number;
   followers48h: number;
+  status: 'active' | 'error';
+  monetized: 'yes' | 'no' | 'unknown';
   spark: { t: number; v: number }[];
+}
+
+export interface RevenueAccount {
+  id: number;
+  name: string | null;
+  platform: Platform;
+  avatarUrl: string | null;
+  monetized: 'yes' | 'no' | 'unknown';
+  rpm: number | null;
+  views30d: number | null;
+  est30: number | null;
+  recordedThisMonth: number;
+  recorded12m: number;
+}
+
+export interface RevenueSummary {
+  currency: string;
+  thisMonth: string;
+  totals: {
+    recordedThisMonth: number;
+    est30: number;
+    recorded12m: number;
+    monetizedCount: number;
+    accountCount: number;
+  };
+  monthly: { month: string; total: number }[];
+  accounts: RevenueAccount[];
+}
+
+export interface RevenueEntry {
+  id: number;
+  account_id: number;
+  account_name: string | null;
+  platform: Platform;
+  month: string;
+  amount: number;
+  note: string | null;
+  created_at: number;
 }
 
 export interface Overview {

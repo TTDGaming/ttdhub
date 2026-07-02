@@ -54,12 +54,36 @@ accountsRouter.get('/:id', (req, res, next) => {
 accountsRouter.patch('/:id', (req, res, next) => {
   const account = db.prepare('SELECT * FROM accounts WHERE id = ?').get(req.params.id);
   if (!account) return next(httpError(404, 'Không tìm thấy tài khoản'));
-  const { name, note, pageUrl } = req.body || {};
-  db.prepare('UPDATE accounts SET name = ?, note = ?, page_url = ? WHERE id = ?').run(
-    name ?? account.name, note ?? account.note, pageUrl !== undefined ? pageUrl : account.page_url, account.id
+  const { name, note, pageUrl, monetized, rpm } = req.body || {};
+  if (monetized !== undefined && !['yes', 'no', 'unknown'].includes(monetized)) {
+    return next(httpError(400, 'Trạng thái kiếm tiền không hợp lệ'));
+  }
+  if (rpm !== undefined && rpm !== null && (!Number.isFinite(Number(rpm)) || Number(rpm) < 0)) {
+    return next(httpError(400, 'RPM không hợp lệ'));
+  }
+  db.prepare(
+    'UPDATE accounts SET name = ?, note = ?, page_url = ?, monetized = ?, rpm = ? WHERE id = ?'
+  ).run(
+    name ?? account.name,
+    note !== undefined ? note : account.note,
+    pageUrl !== undefined ? pageUrl : account.page_url,
+    monetized ?? account.monetized,
+    rpm !== undefined ? (rpm === null ? null : Number(rpm)) : account.rpm,
+    account.id
   );
   res.json({ ok: true });
 });
+
+// Mở lại trình duyệt của kênh đã kết nối (đăng nhập lại / kiểm tra kênh)
+accountsRouter.post(
+  '/:id/open-browser',
+  asyncHandler(async (req, res) => {
+    const account = db.prepare('SELECT * FROM accounts WHERE id = ?').get(req.params.id);
+    if (!account) throw httpError(404, 'Không tìm thấy tài khoản');
+    const { sessionId } = await startLoginSession(account.platform, account.id);
+    res.json({ sessionId, accountId: account.id });
+  })
+);
 
 accountsRouter.delete(
   '/:id',

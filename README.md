@@ -15,6 +15,13 @@ và biểu đồ view 48 giờ của từng kênh — **không cần API key, kh
   hẹn giờ đăng; hàng đợi tự chạy tuần tự với tiến trình realtime, job lỗi có ảnh chụp màn hình để tra cứu.
 - **Số liệu & biểu đồ**: tổng quan toàn hệ thống, view tăng theo giờ trong 48h, sparkline từng kênh,
   biểu đồ follower/view/likes theo 48h · 7 · 30 · 90 ngày. Số liệu tự thu mỗi 30 phút.
+- **Tốc độ tăng trưởng**: % tăng trưởng view/follower theo khoảng thời gian, biểu đồ cột
+  "view mới / follower mới" theo giờ hoặc theo ngày cho từng kênh.
+- **Kiếm tiền & doanh thu**: đánh dấu kênh đã bật kiếm tiền (BKT) hay chưa; trang Doanh thu
+  ghi nhận doanh thu theo tháng cho từng kênh, ước tính tự động từ RPM × view, biểu đồ 12 tháng,
+  tổng doanh thu toàn hệ thống, xuất CSV. Hỗ trợ USD/VND/EUR.
+- **Trình duyệt kênh**: mở lại trình duyệt cách ly của kênh đã kết nối ngay trong web app —
+  đăng nhập lại khi hết phiên (không phải gỡ kênh), kiểm tra kênh mà không đụng máy chủ.
 - **Quản lý từ xa**: chạy trên Linux/Windows, truy cập qua trình duyệt; hỗ trợ Cloudflare Tunnel
   (không cần mở port, không cần IP tĩnh).
 - **Bảo mật**: đăng nhập quản trị bắt buộc, cookie phiên HttpOnly, dữ liệu lưu 100% cục bộ.

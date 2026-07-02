@@ -74,7 +74,25 @@ CREATE TABLE IF NOT EXISTS settings (
   key TEXT PRIMARY KEY,
   value TEXT
 );
+
+CREATE TABLE IF NOT EXISTS revenue_entries (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  month TEXT NOT NULL,            -- 'YYYY-MM'
+  amount REAL NOT NULL,
+  note TEXT,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_revenue_account_month ON revenue_entries(account_id, month);
 `);
+
+// Migration nhẹ: thêm cột mới vào bảng cũ nếu chưa có
+function ensureColumn(table, column, ddl) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all();
+  if (!cols.some((c) => c.name === column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${ddl}`);
+}
+ensureColumn('accounts', 'monetized', "monetized TEXT NOT NULL DEFAULT 'unknown'"); // 'yes' | 'no' | 'unknown'
+ensureColumn('accounts', 'rpm', 'rpm REAL'); // doanh thu ước tính trên 1000 view
 
 export const now = () => Date.now();
 

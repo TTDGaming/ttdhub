@@ -2,6 +2,7 @@ import path from 'node:path';
 import { DEBUG_DIR } from '../../config.js';
 import { sleep } from '../../util.js';
 
+export const homeUrl = 'https://www.tiktok.com';
 export const loginUrl = 'https://www.tiktok.com/login';
 
 export async function isLoggedIn(context) {

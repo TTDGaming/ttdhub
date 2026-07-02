@@ -1,14 +1,48 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { api } from '../api';
 import { PageHeader, Spinner } from '../components/bits';
 
 export default function Settings() {
   return (
     <div>
-      <PageHeader title="Cài đặt" subtitle="Bảo mật và truy cập từ xa" />
+      <PageHeader title="Cài đặt" subtitle="Bảo mật, tiền tệ và truy cập từ xa" />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-        <ChangePassword />
+        <div className="space-y-4">
+          <CurrencySetting />
+          <ChangePassword />
+        </div>
         <TunnelGuide />
+      </div>
+    </div>
+  );
+}
+
+function CurrencySetting() {
+  const [currency, setCurrency] = useState('USD');
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    api.get<{ currency: string }>('/api/settings').then((s) => setCurrency(s.currency));
+  }, []);
+
+  const save = async (value: string) => {
+    setCurrency(value);
+    await api.put('/api/settings', { currency: value });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  return (
+    <div className="card px-5 py-4">
+      <div className="font-semibold text-sm mb-1">Đơn vị tiền tệ</div>
+      <p className="text-xs text-muted mb-3">Dùng cho trang Doanh thu (RPM, ghi nhận, ước tính).</p>
+      <div className="flex items-center gap-3">
+        <select className="input max-w-[180px]" value={currency} onChange={(e) => save(e.target.value)}>
+          <option value="USD">USD — đô la Mỹ</option>
+          <option value="VND">VND — đồng Việt Nam</option>
+          <option value="EUR">EUR — euro</option>
+        </select>
+        {saved && <span className="text-sm text-[#006300]">✓ Đã lưu</span>}
       </div>
     </div>
   );

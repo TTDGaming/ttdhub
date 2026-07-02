@@ -8,6 +8,7 @@ import Channels from './pages/Channels';
 import ChannelDetail from './pages/ChannelDetail';
 import Upload from './pages/Upload';
 import Jobs from './pages/Jobs';
+import Revenue from './pages/Revenue';
 import Settings from './pages/Settings';
 
 interface AuthState {
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="/channels/:id" element={<ChannelDetail />} />
         <Route path="/upload" element={<Upload />} />
         <Route path="/jobs" element={<Jobs />} />
+        <Route path="/revenue" element={<Revenue />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

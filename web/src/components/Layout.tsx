@@ -6,6 +6,7 @@ const NAV = [
   { to: '/channels', label: 'Kênh', icon: '📡' },
   { to: '/upload', label: 'Đăng video', icon: '⬆️' },
   { to: '/jobs', label: 'Hàng đợi', icon: '🗂️' },
+  { to: '/revenue', label: 'Doanh thu', icon: '💰' },
   { to: '/settings', label: 'Cài đặt', icon: '⚙️' },
 ];
 

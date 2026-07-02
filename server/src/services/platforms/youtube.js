@@ -2,6 +2,7 @@ import path from 'node:path';
 import { DEBUG_DIR } from '../../config.js';
 import { parseCount, deepFind, sleep } from '../../util.js';
 
+export const homeUrl = 'https://studio.youtube.com';
 export const loginUrl =
   'https://accounts.google.com/ServiceLogin?service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2F';
 

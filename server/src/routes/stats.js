@@ -13,7 +13,7 @@ const RANGES = {
 
 /** Tổng quan toàn hệ thống cho dashboard. */
 statsRouter.get('/overview', (req, res) => {
-  const accounts = db.prepare("SELECT * FROM accounts WHERE status = 'active'").all();
+  const accounts = db.prepare("SELECT * FROM accounts WHERE status != 'connecting'").all();
   const cutoff = Date.now() - 48 * 3600 * 1000;
 
   let totalViews = 0, totalFollowers = 0, views48h = 0, followers48h = 0;
@@ -50,6 +50,8 @@ statsRouter.get('/overview', (req, res) => {
       name: acc.name,
       handle: acc.handle,
       avatarUrl: acc.avatar_url,
+      status: acc.status,
+      monetized: acc.monetized,
       views: latest?.views ?? null,
       followers: latest?.followers ?? null,
       likes: latest?.likes ?? null,
@@ -82,6 +84,28 @@ statsRouter.get('/overview', (req, res) => {
     },
     accounts: perAccount,
   });
+});
+
+/** Xuất CSV số liệu hiện tại của tất cả kênh. */
+statsRouter.get('/export.csv', (req, res) => {
+  const accounts = db.prepare("SELECT * FROM accounts WHERE status != 'connecting'").all();
+  const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const rows = accounts.map((acc) => {
+    const latest = db
+      .prepare('SELECT * FROM stat_snapshots WHERE account_id = ? ORDER BY taken_at DESC LIMIT 1')
+      .get(acc.id);
+    return [
+      esc(acc.name), acc.platform, esc(acc.handle), acc.monetized, acc.rpm ?? '',
+      latest?.views ?? '', latest?.followers ?? '', latest?.likes ?? '', latest?.videos ?? '',
+      latest ? new Date(latest.taken_at).toISOString() : '',
+    ].join(',');
+  });
+  const csv = ['channel,platform,handle,monetized,rpm,views,followers,likes,videos,updated_at']
+    .concat(rows)
+    .join('\n');
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="mshub-channels.csv"');
+  res.send('﻿' + csv);
 });
 
 /** Chuỗi thời gian của một tài khoản để vẽ biểu đồ chi tiết. */

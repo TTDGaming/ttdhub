@@ -70,9 +70,14 @@ async function runJob(job) {
       "UPDATE upload_jobs SET status = 'done', progress = 100, remote_url = ?, finished_at = ? WHERE id = ?"
     ).run(result?.remoteUrl || null, now(), job.id);
   } catch (err) {
+    const message = String(err?.message || err);
     db.prepare("UPDATE upload_jobs SET status = 'error', error = ?, finished_at = ? WHERE id = ?").run(
-      String(err?.message || err).slice(0, 2000), now(), job.id
+      message.slice(0, 2000), now(), job.id
     );
+    // Phiên hết hạn → đánh dấu kênh cần đăng nhập lại (job khác của kênh sẽ không chạy vô ích)
+    if (/hết hạn/i.test(message)) {
+      db.prepare("UPDATE accounts SET status = 'error' WHERE id = ?").run(job.account_id);
+    }
   } finally {
     if (context) await releaseContext(job.account_id);
     runningJobs.delete(job.id);

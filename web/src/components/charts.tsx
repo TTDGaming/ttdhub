@@ -1,5 +1,5 @@
 import {
-  Area, AreaChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
 import { fmtDayHour, fmtNumber } from '../format';
 
@@ -10,21 +10,26 @@ const fmtAxis = (v: number) =>
 const INK_MUTED = 'var(--text-muted)';
 const GRID = 'var(--gridline)';
 
-function ChartTooltip({ active, payload, label, labelFormatter }: {
+function ChartTooltip({ active, payload, label, labelFormatter, valueFormatter }: {
   active?: boolean;
-  payload?: { name: string; value: number; color?: string; stroke?: string }[];
-  label?: number;
-  labelFormatter?: (v: number) => string;
+  payload?: { name: string; value: number; color?: string; stroke?: string; fill?: string }[];
+  label?: number | string;
+  labelFormatter?: (v: any) => string;
+  valueFormatter?: (v: number) => string;
 }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border border-hairline bg-white px-3 py-2 shadow-card text-xs">
-      <div className="text-muted mb-1">{labelFormatter && label != null ? labelFormatter(label) : label}</div>
+      <div className="text-muted mb-1">
+        {labelFormatter && label != null ? labelFormatter(label) : label}
+      </div>
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full" style={{ background: p.stroke || p.color }} />
+          <span className="w-2 h-2 rounded-full" style={{ background: p.stroke || p.fill || p.color }} />
           <span className="text-ink-2">{p.name}:</span>
-          <span className="font-semibold text-ink">{fmtNumber(p.value)}</span>
+          <span className="font-semibold text-ink">
+            {valueFormatter ? valueFormatter(p.value) : fmtNumber(p.value)}
+          </span>
         </div>
       ))}
     </div>
@@ -79,6 +84,46 @@ export function TimeAreaChart({ data, dataKey, name, color, height = 260 }: {
           connectNulls
         />
       </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+/** Biểu đồ cột theo mốc thời gian (tăng trưởng theo ngày, doanh thu theo tháng...). */
+export function TimeBarChart({ data, dataKey, name, color, height = 220, xKey = 't', xFormatter, valueFormatter }: {
+  data: Record<string, unknown>[];
+  dataKey: string;
+  name: string;
+  color: string;
+  height?: number;
+  xKey?: string;
+  xFormatter?: (v: any) => string;
+  valueFormatter?: (v: number) => string;
+}) {
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="25%">
+        <CartesianGrid stroke={GRID} vertical={false} />
+        <XAxis
+          dataKey={xKey}
+          tickFormatter={xFormatter}
+          tick={{ fontSize: 11, fill: INK_MUTED }}
+          axisLine={{ stroke: 'var(--baseline)' }}
+          tickLine={false}
+          minTickGap={24}
+        />
+        <YAxis
+          tickFormatter={(v: number) => (valueFormatter ? valueFormatter(v) : fmtAxis(v))}
+          tick={{ fontSize: 11, fill: INK_MUTED }}
+          axisLine={false}
+          tickLine={false}
+          width={valueFormatter ? 88 : 62}
+        />
+        <Tooltip
+          content={<ChartTooltip labelFormatter={xFormatter} valueFormatter={valueFormatter} />}
+          cursor={{ fill: 'rgba(11,11,11,0.04)' }}
+        />
+        <Bar dataKey={dataKey} name={name} fill={color} radius={[4, 4, 0, 0]} maxBarSize={28} />
+      </BarChart>
     </ResponsiveContainer>
   );
 }

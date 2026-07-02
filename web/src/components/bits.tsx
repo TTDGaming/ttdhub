@@ -96,12 +96,26 @@ export function EmptyState({ icon, title, hint, action }: {
   );
 }
 
+/** Nhãn trạng thái bật kiếm tiền của kênh. */
+export function MonetizedBadge({ value }: { value: 'yes' | 'no' | 'unknown' }) {
+  const map = {
+    yes: { label: 'Đã BKT', cls: 'bg-[#0ca30c]/10 text-[#006300] border-[#0ca30c]/30', icon: '💰' },
+    no: { label: 'Chưa BKT', cls: 'bg-page text-ink-2 border-hairline', icon: '🚫' },
+    unknown: { label: 'BKT: chưa rõ', cls: 'bg-page text-muted border-hairline border-dashed', icon: '❔' },
+  }[value] || { label: value, cls: 'bg-page text-muted border-hairline', icon: '❔' };
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${map.cls}`}>
+      <span>{map.icon}</span> {map.label}
+    </span>
+  );
+}
+
 export function StatusPill({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string; icon: string }> = {
     queued: { label: 'Đang chờ', cls: 'bg-page text-ink-2 border-hairline', icon: '🕒' },
     uploading: { label: 'Đang đăng', cls: 'bg-[#2a78d6]/10 text-[#1c5cab] border-[#2a78d6]/30', icon: '⬆️' },
     done: { label: 'Hoàn tất', cls: 'bg-[#0ca30c]/10 text-[#006300] border-[#0ca30c]/30', icon: '✅' },
-    error: { label: 'Lỗi', cls: 'bg-[#d03b3b]/10 text-[#d03b3b] border-[#d03b3b]/30', icon: '⚠️' },
+    error: { label: 'Cần đăng nhập lại', cls: 'bg-[#d03b3b]/10 text-[#d03b3b] border-[#d03b3b]/30', icon: '⚠️' },
     canceled: { label: 'Đã hủy', cls: 'bg-page text-muted border-hairline', icon: '⛔' },
     active: { label: 'Hoạt động', cls: 'bg-[#0ca30c]/10 text-[#006300] border-[#0ca30c]/30', icon: '✅' },
     connecting: { label: 'Đang kết nối', cls: 'bg-page text-ink-2 border-hairline', icon: '🕒' },

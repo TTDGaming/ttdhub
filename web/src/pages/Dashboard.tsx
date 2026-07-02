@@ -1,16 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
-import { Overview } from '../types';
-import { PageHeader, StatCard, PlatformBadge, Avatar, EmptyState } from '../components/bits';
+import { Overview, RevenueSummary } from '../types';
+import { PageHeader, StatCard, PlatformBadge, Avatar, EmptyState, MonetizedBadge } from '../components/bits';
 import { TimeAreaChart, Sparkline } from '../components/charts';
-import { fmtCompact, fmtDelta, PLATFORM_COLOR } from '../format';
+import { fmtCompact, fmtDelta, fmtMoney, PLATFORM_COLOR } from '../format';
 
 export default function Dashboard() {
   const [data, setData] = useState<Overview | null>(null);
+  const [revenue, setRevenue] = useState<RevenueSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const load = () => api.get<Overview>('/api/stats/overview').then(setData).catch((e) => setError(e.message));
+  const load = () =>
+    Promise.all([
+      api.get<Overview>('/api/stats/overview').then(setData),
+      api.get<RevenueSummary>('/api/revenue/summary').then(setRevenue).catch(() => {}),
+    ]).catch((e) => setError(e.message));
   useEffect(() => {
     load();
     const t = setInterval(load, 60_000);
@@ -41,10 +46,15 @@ export default function Dashboard() {
         subtitle="Toàn bộ kênh của bạn trong một màn hình — số liệu cập nhật tự động"
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <StatCard label="Kênh đã kết nối" value={data.accountCount} hint="YouTube · TikTok · Facebook" />
         <StatCard label="View 48 giờ" value={fmtCompact(data.views48h)} delta={data.views48h} hint="so với 48h trước" />
         <StatCard label="Follower tăng 48h" value={fmtDelta(data.followers48h)} delta={data.followers48h} hint="tất cả các kênh" />
+        <StatCard
+          label="Doanh thu tháng này"
+          value={revenue ? fmtMoney(revenue.totals.recordedThisMonth, revenue.currency) : '—'}
+          hint={revenue ? `ước tính 30d ${fmtMoney(revenue.totals.est30, revenue.currency)}` : ''}
+        />
         <StatCard
           label="Hàng đợi đăng"
           value={`${data.jobs.uploading + data.jobs.queued}`}
@@ -69,7 +79,10 @@ export default function Dashboard() {
       <div className="card overflow-hidden">
         <div className="px-5 py-3.5 border-b border-hairline flex items-center justify-between">
           <div className="font-semibold text-sm">Hiệu suất từng kênh (48h)</div>
-          <Link to="/channels" className="text-xs text-brand hover:underline">Quản lý kênh →</Link>
+          <div className="flex items-center gap-3">
+            <a href="/api/stats/export.csv" className="text-xs text-muted hover:text-brand" download>⬇️ Xuất CSV</a>
+            <Link to="/channels" className="text-xs text-brand hover:underline">Quản lý kênh →</Link>
+          </div>
         </div>
         {data.accounts.length === 0 ? (
           <EmptyState
@@ -84,6 +97,7 @@ export default function Dashboard() {
               <tr className="text-left text-[11px] uppercase tracking-wide text-muted border-b border-hairline">
                 <th className="px-5 py-2.5 font-medium">Kênh</th>
                 <th className="px-3 py-2.5 font-medium">Nền tảng</th>
+                <th className="px-3 py-2.5 font-medium">Kiếm tiền</th>
                 <th className="px-3 py-2.5 font-medium text-right">Follower</th>
                 <th className="px-3 py-2.5 font-medium text-right">View 48h</th>
                 <th className="px-3 py-2.5 font-medium text-right">Follower 48h</th>
@@ -97,12 +111,18 @@ export default function Dashboard() {
                     <Link to={`/channels/${acc.id}`} className="flex items-center gap-3 group">
                       <Avatar url={acc.avatarUrl} name={acc.name} size={32} />
                       <div className="min-w-0">
-                        <div className="font-medium truncate group-hover:text-brand">{acc.name || '—'}</div>
+                        <div className="font-medium truncate group-hover:text-brand">
+                          {acc.name || '—'}
+                          {acc.status === 'error' && (
+                            <span className="ml-1.5 text-[11px] text-[#d03b3b]" title="Cần đăng nhập lại">⚠️</span>
+                          )}
+                        </div>
                         <div className="text-[11px] text-muted truncate">{acc.handle || ''}</div>
                       </div>
                     </Link>
                   </td>
                   <td className="px-3 py-3"><PlatformBadge platform={acc.platform} /></td>
+                  <td className="px-3 py-3"><MonetizedBadge value={acc.monetized} /></td>
                   <td className="px-3 py-3 text-right font-medium tabular-nums">{fmtCompact(acc.followers)}</td>
                   <td className="px-3 py-3 text-right tabular-nums">
                     <DeltaText value={acc.views48h} />

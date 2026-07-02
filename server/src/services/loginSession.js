@@ -16,18 +16,35 @@ export function getLoginSession(id) {
   return sessions.get(id) || null;
 }
 
-export async function startLoginSession(platformName) {
+/**
+ * Mở phiên đăng nhập. Không truyền existingAccountId = kết nối kênh mới
+ * (tạo profile cách ly mới). Truyền existingAccountId = mở lại trình duyệt
+ * của kênh đã có (đăng nhập lại khi hết phiên, kiểm tra kênh...).
+ */
+export async function startLoginSession(platformName, existingAccountId = null) {
   const platform = getPlatform(platformName);
 
-  // Tạo bản ghi tài khoản trước để có ID → thư mục profile cách ly riêng
-  const info = db
-    .prepare("INSERT INTO accounts (platform, status, created_at) VALUES (?, 'connecting', ?)")
-    .run(platformName, now());
-  const accountId = Number(info.lastInsertRowid);
+  let accountId;
+  let isNew = false;
+  if (existingAccountId) {
+    const acc = db.prepare('SELECT * FROM accounts WHERE id = ?').get(existingAccountId);
+    if (!acc) throw new Error('Không tìm thấy kênh');
+    accountId = acc.id;
+  } else {
+    // Tạo bản ghi tài khoản trước để có ID → thư mục profile cách ly riêng
+    const info = db
+      .prepare("INSERT INTO accounts (platform, status, created_at) VALUES (?, 'connecting', ?)")
+      .run(platformName, now());
+    accountId = Number(info.lastInsertRowid);
+    isNew = true;
+  }
 
   const context = await acquireContext(accountId);
   const page = await context.newPage();
-  await page.goto(platform.loginUrl, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
+  const startUrl = isNew
+    ? platform.loginUrl
+    : (await platform.isLoggedIn(context)) ? platform.homeUrl || platform.loginUrl : platform.loginUrl;
+  await page.goto(startUrl, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
 
   const id = randomToken(16);
   const session = {
@@ -163,6 +180,12 @@ export async function finishLoginSession(id) {
   if (!loggedIn) throw new Error('Chưa phát hiện đăng nhập thành công — hãy đăng nhập xong rồi bấm Hoàn tất');
 
   const identity = await platform.fetchIdentity(session.context);
+  // Với kênh đã có: không cho "Hoàn tất" bằng một tài khoản khác
+  const existing = db.prepare('SELECT external_id, status FROM accounts WHERE id = ?').get(session.accountId);
+  if (existing?.status !== 'connecting' && existing?.external_id
+      && existing.external_id !== String(identity.externalId)) {
+    throw new Error('Tài khoản vừa đăng nhập khác với kênh ban đầu — hãy đăng nhập đúng tài khoản của kênh này');
+  }
   db.prepare(
     "UPDATE accounts SET name = ?, handle = ?, avatar_url = ?, external_id = ?, status = 'active' WHERE id = ?"
   ).run(identity.name, identity.handle, identity.avatarUrl, String(identity.externalId), session.accountId);

@@ -2,6 +2,7 @@ import path from 'node:path';
 import { DEBUG_DIR } from '../../config.js';
 import { parseCount, sleep } from '../../util.js';
 
+export const homeUrl = 'https://www.facebook.com';
 export const loginUrl = 'https://www.facebook.com/login';
 
 export async function isLoggedIn(context) {

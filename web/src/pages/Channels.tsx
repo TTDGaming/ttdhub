@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { Account } from '../types';
-import { PageHeader, PlatformBadge, Avatar, EmptyState, StatusPill } from '../components/bits';
+import { PageHeader, PlatformBadge, Avatar, EmptyState, StatusPill, MonetizedBadge } from '../components/bits';
 import ConnectModal from '../components/ConnectModal';
 import { fmtCompact, fmtDelta, PLATFORM_LABEL } from '../format';
 
@@ -65,9 +65,12 @@ export default function Channels() {
               <MiniStat label="View 48h" value={fmtDelta(acc.stats?.views48h)} positive={(acc.stats?.views48h ?? 0) > 0} />
               <MiniStat label="Follower 48h" value={fmtDelta(acc.stats?.followers48h)} positive={(acc.stats?.followers48h ?? 0) > 0} />
             </div>
-            <div className="mt-3 flex items-center justify-between">
-              <StatusPill status={acc.status} />
-              {acc.note && <span className="text-[11px] text-muted truncate ml-2">{acc.note}</span>}
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <StatusPill status={acc.status} />
+                <MonetizedBadge value={acc.monetized} />
+              </div>
+              {acc.note && <span className="text-[11px] text-muted truncate">{acc.note}</span>}
             </div>
           </Link>
         ))}

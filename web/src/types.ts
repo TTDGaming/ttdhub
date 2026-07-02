@@ -11,6 +11,14 @@ export interface AccountStats {
   likes48h: number | null;
 }
 
+export interface AccountIdentity {
+  id: number;
+  name: string | null;
+  email: string | null;
+  avatarUrl: string | null;
+  kind: 'manager' | 'single';
+}
+
 export interface Account {
   id: number;
   platform: Platform;
@@ -23,8 +31,55 @@ export interface Account {
   note: string | null;
   monetized: 'yes' | 'no' | 'unknown';
   rpm: number | null;
+  role: 'owner' | 'manager' | 'self';
+  is_manager: number;
+  tags: string[];
+  identity: AccountIdentity | null;
+  identity_id: number | null;
   created_at: number;
   stats: AccountStats | null;
+}
+
+export interface Identity {
+  id: number;
+  platform: Platform;
+  kind: 'manager' | 'single';
+  email: string | null;
+  name: string | null;
+  avatarUrl: string | null;
+  status: 'connecting' | 'active' | 'error';
+  lastSyncedAt: number | null;
+  channelCount: number;
+  managedCount: number;
+}
+
+export interface ChannelVideo {
+  id: number;
+  externalId: string;
+  title: string | null;
+  thumbnailUrl: string | null;
+  url: string | null;
+  publishedAt: number | null;
+  publishedText: string | null;
+  duration: string | null;
+  views: number | null;
+  likes: number | null;
+  comments: number | null;
+  privacy: string | null;
+  scrapedAt: number;
+}
+
+export interface ChannelComment {
+  id: number;
+  externalId: string;
+  videoTitle: string | null;
+  author: string | null;
+  authorAvatar: string | null;
+  text: string | null;
+  likes: number | null;
+  replied: boolean;
+  publishedText: string | null;
+  scrapedAt: number;
 }
 
 export interface OverviewAccount {

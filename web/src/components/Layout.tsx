@@ -1,6 +1,8 @@
-import { ComponentType, ReactNode, SVGProps } from 'react';
-import { NavLink } from 'react-router-dom';
+import { ComponentType, ReactNode, SVGProps, useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { ThemeMode, useTheme } from '../theme';
+import AppBar from './AppBar';
+import CommandPalette from './CommandPalette';
 import {
   IconChannels, IconCoins, IconDashboard, IconLogout, IconMonitor, IconMoon,
   IconQueue, IconSettings, IconSun, IconUpload,
@@ -8,13 +10,29 @@ import {
 
 type Icon = ComponentType<SVGProps<SVGSVGElement> & { size?: number }>;
 
-const NAV: { to: string; label: string; icon: Icon }[] = [
-  { to: '/', label: 'Tổng quan', icon: IconDashboard },
-  { to: '/channels', label: 'Kênh', icon: IconChannels },
-  { to: '/upload', label: 'Đăng video', icon: IconUpload },
-  { to: '/jobs', label: 'Hàng đợi', icon: IconQueue },
-  { to: '/revenue', label: 'Doanh thu', icon: IconCoins },
-  { to: '/settings', label: 'Cài đặt', icon: IconSettings },
+const SECTIONS: { title: string; items: { to: string; label: string; icon: Icon }[] }[] = [
+  {
+    title: 'Điều hướng',
+    items: [
+      { to: '/', label: 'Tổng quan', icon: IconDashboard },
+      { to: '/channels', label: 'Kênh', icon: IconChannels },
+    ],
+  },
+  {
+    title: 'Nội dung',
+    items: [
+      { to: '/upload', label: 'Đăng video', icon: IconUpload },
+      { to: '/jobs', label: 'Hàng đợi', icon: IconQueue },
+    ],
+  },
+  {
+    title: 'Kinh doanh',
+    items: [{ to: '/revenue', label: 'Doanh thu', icon: IconCoins }],
+  },
+  {
+    title: 'Hệ thống',
+    items: [{ to: '/settings', label: 'Cài đặt', icon: IconSettings }],
+  },
 ];
 
 export default function Layout({ username, onLogout, children }: {
@@ -22,31 +40,56 @@ export default function Layout({ username, onLogout, children }: {
   onLogout: () => void;
   children: ReactNode;
 }) {
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const loc = useLocation();
+
+  // ⌘K / Ctrl+K mở command palette (bỏ qua khi đang gõ trong ô nhập)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
     <div className="flex h-full">
-      <aside className="w-60 shrink-0 bg-sidebar text-white flex flex-col">
+      <aside className="w-60 shrink-0 flex flex-col text-white" style={{ background: 'var(--sidebar)' }}>
         <div className="px-5 py-5 flex items-center gap-3 border-b border-white/10">
           <div className="w-9 h-9 rounded-lg bg-brand grid place-items-center font-bold text-sm text-white">MS</div>
           <div>
             <div className="font-semibold leading-tight">MS Hub</div>
-            <div className="text-[11px] text-white/50">Quản lý đa kênh</div>
+            <div className="text-[11px]" style={{ color: 'var(--sidebar-muted)' }}>Quản lý đa kênh</div>
           </div>
         </div>
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {NAV.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === '/'}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                  isActive ? 'bg-brand text-white font-medium' : 'text-white/70 hover:bg-sidebar-2 hover:text-white'
-                }`
-              }
-            >
-              <Icon size={18} className="shrink-0 opacity-90" />
-              {label}
-            </NavLink>
+        <nav className="flex-1 px-3 py-4 overflow-y-auto">
+          {SECTIONS.map((section) => (
+            <div key={section.title} className="mb-4">
+              <div className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--sidebar-muted)' }}>
+                {section.title}
+              </div>
+              <div className="space-y-0.5">
+                {section.items.map(({ to, label, icon: Icon }) => (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    end={to === '/'}
+                    className={({ isActive }) =>
+                      `relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2 text-sm transition-colors ${
+                        isActive ? 'bg-brand text-white font-medium' : 'hover:bg-white/5'
+                      }`
+                    }
+                    style={({ isActive }) => (isActive ? {} : { color: 'var(--sidebar-ink)' })}
+                  >
+                    <Icon size={17} className="shrink-0 opacity-90" />
+                    {label}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
         <div className="px-4 py-3 border-t border-white/10">
@@ -55,20 +98,22 @@ export default function Layout({ username, onLogout, children }: {
         <div className="px-4 pb-4 pt-1 flex items-center justify-between gap-2">
           <div className="min-w-0">
             <div className="text-sm font-medium truncate">{username}</div>
-            <div className="text-[11px] text-white/50">Quản trị viên</div>
+            <div className="text-[11px]" style={{ color: 'var(--sidebar-muted)' }}>Quản trị viên</div>
           </div>
-          <button
-            onClick={onLogout}
-            className="text-white/60 hover:text-white border border-white/15 rounded-md p-1.5"
-            title="Đăng xuất"
-          >
+          <button onClick={onLogout} className="text-white/60 hover:text-white border border-white/15 rounded-md p-1.5" title="Đăng xuất">
             <IconLogout size={15} />
           </button>
         </div>
       </aside>
+
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-6 py-6">{children}</div>
+        <AppBar onOpenPalette={() => setPaletteOpen(true)} />
+        <div className="max-w-6xl mx-auto px-6 py-6">
+          <div key={loc.pathname} className="animate-page">{children}</div>
+        </div>
       </main>
+
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   );
 }

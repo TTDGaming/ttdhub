@@ -1,17 +1,21 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { RevenueEntry, RevenueSummary } from '../types';
 import { PageHeader, StatCard, PlatformBadge, Avatar, EmptyState, MonetizedBadge, Spinner } from '../components/bits';
+import { PageSkeleton } from '../components/Skeletons';
+import { Modal, ModalHeader } from '../components/Modal';
+import { useToast } from '../components/Toast';
 import { TimeBarChart } from '../components/charts';
-import { IconChannels, IconDownload, IconPlus } from '../components/icons';
+import { IconChannels, IconCoins, IconDownload, IconPlus } from '../components/icons';
 import { fmtCompact, fmtMoney, fmtMonth } from '../format';
 
 export default function Revenue() {
+  const toast = useToast();
+  const [params, setParams] = useSearchParams();
   const [data, setData] = useState<RevenueSummary | null>(null);
   const [entries, setEntries] = useState<RevenueEntry[]>([]);
   const [showAdd, setShowAdd] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const [summary, list] = await Promise.all([
@@ -21,10 +25,13 @@ export default function Revenue() {
     setData(summary);
     setEntries(list);
   }, []);
-  useEffect(() => { load().catch((e) => setError(e.message)); }, [load]);
+  useEffect(() => { load().catch((e) => toast.error(e.message)); }, [load]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (error) return <div className="text-sm text-neg">{error}</div>;
-  if (!data) return <div className="text-sm text-muted">Đang tải…</div>;
+  useEffect(() => {
+    if (params.get('add')) { setShowAdd(true); params.delete('add'); setParams(params, { replace: true }); }
+  }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!data) return <PageSkeleton />;
   const cur = data.currency;
 
   return (
@@ -120,8 +127,9 @@ export default function Revenue() {
           Lịch sử ghi nhận ({entries.length})
         </div>
         {entries.length === 0 ? (
-          <div className="px-5 py-8 text-sm text-muted text-center">
-            Chưa có bản ghi nào — bấm "+ Ghi nhận doanh thu" để nhập doanh thu thực nhận theo tháng.
+          <div className="py-4">
+            <EmptyState icon={<IconCoins />} title="Chưa có bản ghi nào"
+              hint='Bấm "Ghi nhận doanh thu" để nhập doanh thu thực nhận theo tháng cho từng kênh.' />
           </div>
         ) : (
           <table className="w-full text-sm">
@@ -138,7 +146,7 @@ export default function Revenue() {
                   <td className="px-5 py-2.5 w-16 text-right">
                     <button
                       className="text-xs text-neg hover:underline"
-                      onClick={async () => { await api.delete(`/api/revenue/entries/${e.id}`); load(); }}
+                      onClick={async () => { await api.delete(`/api/revenue/entries/${e.id}`); load(); toast.success('Đã xóa bản ghi'); }}
                     >
                       Xóa
                     </button>
@@ -174,25 +182,25 @@ function AddEntryModal({ accounts, currency, onClose }: {
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    setError(null);
     try {
       await api.post('/api/revenue/entries', { accountId, month, amount: Number(amount), note });
+      toast.success('Đã ghi nhận doanh thu');
       onClose(true);
     } catch (err) {
-      setError((err as Error).message);
+      toast.error((err as Error).message);
       setBusy(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 grid place-items-center p-4">
-      <form onSubmit={submit} className="bg-surface rounded-xl shadow-xl w-full max-w-md px-6 py-5 space-y-4">
-        <div className="font-semibold">Ghi nhận doanh thu tháng</div>
+    <Modal open onClose={() => onClose(false)} size="md">
+      <ModalHeader title="Ghi nhận doanh thu tháng" onClose={() => onClose(false)} />
+      <form onSubmit={submit} className="px-5 py-4 space-y-4">
         <div>
           <label className="label">Kênh</label>
           <select className="input" value={accountId} onChange={(e) => setAccountId(Number(e.target.value))}>
@@ -216,12 +224,11 @@ function AddEntryModal({ accounts, currency, onClose }: {
           <label className="label">Ghi chú (tùy chọn)</label>
           <input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="AdSense, Creator Rewards..." />
         </div>
-        {error && <div className="text-sm text-neg">{error}</div>}
         <div className="flex justify-end gap-2">
           <button type="button" className="btn-ghost" onClick={() => onClose(false)}>Hủy</button>
           <button className="btn-primary" disabled={busy}>{busy && <Spinner />} Lưu</button>
         </div>
       </form>
-    </div>
+    </Modal>
   );
 }

@@ -5,6 +5,8 @@ import path from 'node:path';
 import { PORT, HOST, WEB_DIST, DATA_DIR } from './config.js';
 import { authRouter, requireAuth } from './auth.js';
 import { accountsRouter } from './routes/accounts.js';
+import { contentRouter } from './routes/content.js';
+import { identitiesRouter } from './routes/identities.js';
 import { uploadsRouter } from './routes/uploads.js';
 import { statsRouter } from './routes/stats.js';
 import { revenueRouter } from './routes/revenue.js';
@@ -20,7 +22,9 @@ app.use(express.json({ limit: '5mb' }));
 
 app.get('/api/health', (req, res) => res.json({ ok: true, name: 'MS Hub' }));
 app.use('/api/auth', authRouter);
+app.use('/api/identities', requireAuth, identitiesRouter);
 app.use('/api/accounts', requireAuth, accountsRouter);
+app.use('/api/accounts', requireAuth, contentRouter); // /:id/videos, /:id/comments...
 app.use('/api/uploads', requireAuth, uploadsRouter);
 app.use('/api/stats', requireAuth, statsRouter);
 app.use('/api/revenue', requireAuth, revenueRouter);

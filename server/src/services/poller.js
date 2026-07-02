@@ -1,6 +1,6 @@
 import { db, now } from '../db.js';
 import { POLL_INTERVAL_MIN } from '../config.js';
-import { acquireContext, releaseContext } from './browser.js';
+import { acquireContext, releaseContext, accountKey } from './browser.js';
 import { getPlatform } from './platforms/index.js';
 
 /**
@@ -14,7 +14,8 @@ export async function refreshAccountStats(accountId) {
   const account = db.prepare("SELECT * FROM accounts WHERE id = ? AND status = 'active'").get(accountId);
   if (!account) throw new Error('Tài khoản không tồn tại hoặc chưa kết nối xong');
   const platform = getPlatform(account.platform);
-  const context = await acquireContext(accountId);
+  const profileKey = accountKey(account);
+  const context = await acquireContext(profileKey);
   try {
     const stats = await platform.fetchStats(context, account);
     if (stats && (stats.views != null || stats.followers != null || stats.likes != null)) {
@@ -24,7 +25,7 @@ export async function refreshAccountStats(accountId) {
     }
     return stats;
   } finally {
-    await releaseContext(accountId);
+    await releaseContext(profileKey);
   }
 }
 

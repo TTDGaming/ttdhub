@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { db, now } from '../db.js';
 import { UPLOAD_CONCURRENCY } from '../config.js';
-import { acquireContext, releaseContext } from './browser.js';
+import { acquireContext, releaseContext, accountKey } from './browser.js';
 import { getPlatform } from './platforms/index.js';
 
 /**
@@ -11,7 +11,7 @@ import { getPlatform } from './platforms/index.js';
  */
 
 const runningJobs = new Set();      // job.id đang chạy
-const busyAccounts = new Set();     // account.id đang có job chạy
+const busyProfiles = new Set();     // profileKey đang có job chạy (mỗi profile chỉ 1 job)
 let ticking = false;
 
 export function enqueueTick() {
@@ -35,28 +35,35 @@ async function tick() {
 function pickNextJob() {
   const rows = db
     .prepare(
-      `SELECT j.*, a.platform, a.page_url, a.handle, a.external_id, a.status AS account_status
+      `SELECT j.*, a.platform, a.page_url, a.handle, a.external_id, a.identity_id, a.status AS account_status,
+              i.status AS identity_status
        FROM upload_jobs j JOIN accounts a ON a.id = j.account_id
+       LEFT JOIN identities i ON i.id = a.identity_id
        WHERE j.status = 'queued' AND (j.schedule_at IS NULL OR j.schedule_at <= ?)
        ORDER BY j.id ASC`
     )
     .all(now());
-  return rows.find((r) => !busyAccounts.has(r.account_id) && r.account_status === 'active') || null;
+  return rows.find((r) => {
+    if (r.account_status !== 'active') return false;
+    if (r.identity_id && r.identity_status && r.identity_status !== 'active') return false;
+    const key = accountKey(r);
+    return !busyProfiles.has(key);
+  }) || null;
 }
 
 async function runJob(job) {
-  runningJobs.add(job.id);
-  busyAccounts.add(job.account_id);
-  db.prepare("UPDATE upload_jobs SET status = 'uploading', progress = 1, started_at = ?, error = NULL WHERE id = ?")
-    .run(now(), job.id);
-
   const account = db.prepare('SELECT * FROM accounts WHERE id = ?').get(job.account_id);
   job._account = account;
+  const profileKey = accountKey(account);
+  runningJobs.add(job.id);
+  busyProfiles.add(profileKey);
+  db.prepare("UPDATE upload_jobs SET status = 'uploading', progress = 1, started_at = ?, error = NULL WHERE id = ?")
+    .run(now(), job.id);
   let context = null;
   try {
     if (!fs.existsSync(job.file_path)) throw new Error('File video không còn tồn tại trên server');
     const platform = getPlatform(job.platform);
-    context = await acquireContext(job.account_id);
+    context = await acquireContext(profileKey);
 
     const onProgress = (p) => {
       const cur = db.prepare('SELECT status FROM upload_jobs WHERE id = ?').get(job.id);
@@ -74,14 +81,18 @@ async function runJob(job) {
     db.prepare("UPDATE upload_jobs SET status = 'error', error = ?, finished_at = ? WHERE id = ?").run(
       message.slice(0, 2000), now(), job.id
     );
-    // Phiên hết hạn → đánh dấu kênh cần đăng nhập lại (job khác của kênh sẽ không chạy vô ích)
+    // Phiên hết hạn → đánh dấu cần đăng nhập lại. Với kênh được quản lý thì đánh
+    // dấu cả identity (mọi kênh của tài khoản quản lý tạm dừng).
     if (/hết hạn/i.test(message)) {
       db.prepare("UPDATE accounts SET status = 'error' WHERE id = ?").run(job.account_id);
+      if (account?.identity_id) {
+        db.prepare("UPDATE identities SET status = 'error' WHERE id = ?").run(account.identity_id);
+      }
     }
   } finally {
-    if (context) await releaseContext(job.account_id);
+    if (context) await releaseContext(profileKey);
     runningJobs.delete(job.id);
-    busyAccounts.delete(job.account_id);
+    busyProfiles.delete(profileKey);
     enqueueTick();
   }
 }

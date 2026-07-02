@@ -17,10 +17,22 @@
   --pos: #006300;
   --pos-strong: #0ca30c;
   --neg: #d03b3b;
-  --sidebar: #101623;
+  --sidebar: #0f141f;
   --sidebar-2: #1a2334;
+  --sidebar-ink: rgba(255, 255, 255, 0.72);
+  --sidebar-muted: rgba(255, 255, 255, 0.42);
   --shadow-card: 0 1px 2px rgba(11, 11, 11, 0.04), 0 1px 3px rgba(11, 11, 11, 0.06);
+  --shadow-pop: 0 4px 12px rgba(11, 11, 11, 0.1), 0 2px 4px rgba(11, 11, 11, 0.06);
+  --shadow-modal: 0 24px 48px rgba(11, 11, 11, 0.22), 0 8px 16px rgba(11, 11, 11, 0.12);
   --hover-wash: rgba(11, 11, 11, 0.04);
+  --zebra: rgba(11, 11, 11, 0.022);
+  --ring: rgb(var(--brand-rgb) / 0.5);
+  --skeleton-base: color-mix(in srgb, var(--hairline) 55%, var(--surface));
+  --skeleton-sheen: color-mix(in srgb, var(--surface) 70%, white);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --appbar-h: 56px;
 
   /* Biểu đồ */
   --surface-1: #fcfcfb;
@@ -50,10 +62,17 @@
   --pos: #0ca30c;
   --pos-strong: #0ca30c;
   --neg: #e66767;
-  --sidebar: #131317;
+  --sidebar: #0c0c0e;
   --sidebar-2: #1f1f26;
+  --sidebar-ink: rgba(255, 255, 255, 0.7);
+  --sidebar-muted: rgba(255, 255, 255, 0.4);
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-pop: 0 4px 14px rgba(0, 0, 0, 0.5);
+  --shadow-modal: 0 24px 48px rgba(0, 0, 0, 0.6);
   --hover-wash: rgba(255, 255, 255, 0.05);
+  --zebra: rgba(255, 255, 255, 0.03);
+  --skeleton-base: color-mix(in srgb, var(--hairline) 70%, var(--surface));
+  --skeleton-sheen: color-mix(in srgb, var(--surface) 55%, white);
 
   --surface-1: #1a1a19;
   --text-primary: #ffffff;
@@ -143,6 +162,79 @@ body {
   }
 
   .row-hover:hover { background: var(--hover-wash); }
+
+  .btn-sm { @apply px-2.5 py-1.5 text-xs; }
+  .btn-icon { @apply p-2; }
+
+  /* Điều khiển phân đoạn (tab khoảng thời gian / bộ lọc) */
+  .segmented { @apply inline-flex items-center gap-0.5 rounded-lg border border-hairline bg-surface p-0.5; }
+  .segmented-item {
+    @apply rounded-md px-3 py-1.5 text-xs font-medium text-ink-2 transition-colors cursor-pointer;
+  }
+  .segmented-item:hover { background: var(--hover-wash); }
+  .segmented-item[data-active='true'] { @apply bg-brand text-white; }
+  .segmented-item[data-active='true']:hover { @apply bg-brand; }
+
+  /* Bảng hiện đại: header dính, zebra, hover */
+  .table-modern { @apply w-full text-sm border-collapse; }
+  .table-modern thead th {
+    @apply text-left text-[11px] uppercase tracking-wide text-muted font-medium px-4 py-2.5
+      border-b border-hairline bg-surface sticky z-[1];
+    top: var(--appbar-h);
+  }
+  .table-modern tbody td { @apply px-4 py-3 border-b border-hairline; }
+  .table-modern tbody tr:last-child td { @apply border-0; }
+  .table-modern tbody tr:nth-child(even) { background: var(--zebra); }
+  .table-modern tbody tr:hover { background: var(--hover-wash); }
+
+  /* Menu / popover nổi */
+  .popover {
+    @apply rounded-xl border border-hairline bg-surface p-1.5;
+    box-shadow: var(--shadow-pop);
+  }
+
+  /* Skeleton tải trang */
+  .skeleton {
+    @apply rounded-md;
+    position: relative;
+    overflow: hidden;
+    background: var(--skeleton-base);
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, var(--skeleton-sheen), transparent);
+    animation: shimmer 1.4s infinite;
+  }
+
+  /* Phím tắt hiển thị dạng keycap */
+  .kbd {
+    @apply inline-flex items-center justify-center rounded border border-hairline bg-page px-1.5
+      text-[10px] font-medium text-ink-2 min-w-[18px] h-[18px];
+  }
+
+  .badge-count {
+    @apply absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full text-[10px] font-semibold
+      text-white grid place-items-center;
+    background: var(--neg);
+  }
+}
+
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+@keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dialogIn { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.animate-overlay { animation: overlayIn var(--dur) var(--ease-out); }
+.animate-dialog { animation: dialogIn var(--dur) var(--ease-out); }
+.animate-toast { animation: toastIn var(--dur) var(--ease-out); }
+.animate-page { animation: fadeUp var(--dur) var(--ease-out); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }

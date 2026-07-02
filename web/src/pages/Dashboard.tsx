@@ -3,20 +3,22 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { Overview, RevenueSummary } from '../types';
 import { PageHeader, StatCard, PlatformBadge, Avatar, EmptyState, MonetizedBadge } from '../components/bits';
+import { PageSkeleton } from '../components/Skeletons';
+import { useToast } from '../components/Toast';
 import { TimeAreaChart, Sparkline } from '../components/charts';
 import { IconChannels, IconDownload } from '../components/icons';
 import { fmtCompact, fmtDelta, fmtMoney, PLATFORM_COLOR } from '../format';
 
 export default function Dashboard() {
+  const toast = useToast();
   const [data, setData] = useState<Overview | null>(null);
   const [revenue, setRevenue] = useState<RevenueSummary | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const load = () =>
     Promise.all([
       api.get<Overview>('/api/stats/overview').then(setData),
       api.get<RevenueSummary>('/api/revenue/summary').then(setRevenue).catch(() => {}),
-    ]).catch((e) => setError(e.message));
+    ]).catch((e) => toast.error(e.message));
   useEffect(() => {
     load();
     const t = setInterval(load, 60_000);
@@ -37,8 +39,7 @@ export default function Dashboard() {
     return [...buckets.entries()].sort((a, b) => a[0] - b[0]).map(([t, v]) => ({ t, tang: v }));
   }, [data]);
 
-  if (error) return <div className="text-sm text-neg">{error}</div>;
-  if (!data) return <div className="text-sm text-muted">Đang tải…</div>;
+  if (!data) return <PageSkeleton />;
 
   return (
     <div>

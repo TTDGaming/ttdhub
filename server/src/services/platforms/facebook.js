@@ -4,6 +4,7 @@ import { parseCount, sleep } from '../../util.js';
 
 export const homeUrl = 'https://www.facebook.com';
 export const loginUrl = 'https://www.facebook.com/login';
+export const supportsContent = false; // tab Nội dung/Cộng đồng hiện chỉ hỗ trợ YouTube
 
 export async function isLoggedIn(context) {
   const cookies = await context.cookies('https://www.facebook.com');

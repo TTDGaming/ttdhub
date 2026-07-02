@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { api } from '../api';
 import { UploadJob } from '../types';
 import { PageHeader, PlatformBadge, Avatar, EmptyState, StatusPill } from '../components/bits';
+import { TableSkeleton } from '../components/Skeletons';
+import Segmented from '../components/Segmented';
+import { useToast } from '../components/Toast';
 import { fmtTime } from '../format';
 import { IconQueue, IconPlus } from '../components/icons';
 
@@ -15,13 +18,13 @@ const FILTERS = [
 ];
 
 export default function Jobs() {
-  const [jobs, setJobs] = useState<UploadJob[]>([]);
+  const toast = useToast();
+  const [jobs, setJobs] = useState<UploadJob[] | null>(null);
   const [filter, setFilter] = useState('all');
-  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(
-    () => api.get<UploadJob[]>('/api/uploads/jobs').then(setJobs).catch((e) => setError(e.message)),
-    []
+    () => api.get<UploadJob[]>('/api/uploads/jobs').then(setJobs).catch((e) => toast.error(e.message)),
+    [] // eslint-disable-line react-hooks/exhaustive-deps
   );
   useEffect(() => {
     load();
@@ -29,14 +32,15 @@ export default function Jobs() {
     return () => clearInterval(t);
   }, [load]);
 
-  const shown = jobs.filter((j) => filter === 'all' || j.status === filter);
+  const shown = (jobs || []).filter((j) => filter === 'all' || j.status === filter);
 
-  const act = async (fn: () => Promise<unknown>) => {
+  const act = async (fn: () => Promise<unknown>, okMsg?: string) => {
     try {
       await fn();
       await load();
+      if (okMsg) toast.success(okMsg);
     } catch (err) {
-      setError((err as Error).message);
+      toast.error((err as Error).message);
     }
   };
 
@@ -48,20 +52,13 @@ export default function Jobs() {
         actions={<Link to="/upload" className="btn-primary"><IconPlus size={16} /> Đăng video</Link>}
       />
 
-      <div className="flex items-center gap-1.5 mb-4">
-        {FILTERS.map((f) => (
-          <button key={f.key} onClick={() => setFilter(f.key)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-medium border transition-colors ${
-              filter === f.key ? 'bg-brand text-white border-brand' : 'bg-surface text-ink-2 border-hairline hover:bg-page'
-            }`}>
-            {f.label}
-          </button>
-        ))}
+      <div className="mb-4">
+        <Segmented options={FILTERS} value={filter} onChange={setFilter} />
       </div>
 
-      {error && <div className="text-sm text-neg mb-4">{error}</div>}
-
-      {shown.length === 0 ? (
+      {jobs === null ? (
+        <TableSkeleton rows={6} cols={6} />
+      ) : shown.length === 0 ? (
         <EmptyState icon={<IconQueue />} title="Không có job nào" hint="Tạo lô đăng video mới từ trang Đăng video." />
       ) : (
         <div className="card overflow-hidden">
@@ -119,17 +116,17 @@ export default function Jobs() {
                   </td>
                   <td className="px-5 py-3 text-right space-x-2 whitespace-nowrap">
                     {['error', 'canceled'].includes(j.status) && (
-                      <button className="text-xs text-brand hover:underline" onClick={() => act(() => api.post(`/api/uploads/jobs/${j.id}/retry`))}>
+                      <button className="text-xs text-brand hover:underline" onClick={() => act(() => api.post(`/api/uploads/jobs/${j.id}/retry`), 'Đã cho chạy lại job')}>
                         Chạy lại
                       </button>
                     )}
                     {j.status === 'queued' && (
-                      <button className="text-xs text-neg hover:underline" onClick={() => act(() => api.post(`/api/uploads/jobs/${j.id}/cancel`))}>
+                      <button className="text-xs text-neg hover:underline" onClick={() => act(() => api.post(`/api/uploads/jobs/${j.id}/cancel`), 'Đã hủy job')}>
                         Hủy
                       </button>
                     )}
                     {['done', 'error', 'canceled'].includes(j.status) && (
-                      <button className="text-xs text-muted hover:underline" onClick={() => act(() => api.delete(`/api/uploads/jobs/${j.id}`))}>
+                      <button className="text-xs text-muted hover:underline" onClick={() => act(() => api.delete(`/api/uploads/jobs/${j.id}`), 'Đã xóa job')}>
                         Xóa
                       </button>
                     )}

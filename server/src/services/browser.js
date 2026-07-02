@@ -4,13 +4,17 @@ import { chromium } from 'playwright';
 import { PROFILES_DIR, CHROME_PATH } from '../config.js';
 
 /**
- * Quản lý trình duyệt cách ly theo tài khoản.
- * Mỗi tài khoản = một thư mục profile Chromium riêng (cookie, localStorage,
- * cache hoàn toàn tách biệt). Không tài khoản nào nhìn thấy dữ liệu của
- * tài khoản khác — kể cả khi cùng nền tảng.
+ * Quản lý trình duyệt cách ly theo "profile key".
+ *
+ * - Kênh độc lập (đăng nhập trực tiếp): profile key = `acc_<accountId>`.
+ * - Kênh thuộc một tài khoản quản lý (identity): các kênh cùng identity dùng
+ *   chung profile `id_<identityId>` (một lần đăng nhập Google quản lý nhiều kênh).
+ *
+ * Mỗi profile là một thư mục Chromium riêng — cookie/localStorage/cache tách biệt
+ * hoàn toàn giữa các identity/kênh khác nhau.
  */
 
-const contexts = new Map(); // accountId -> { context, refs }
+const contexts = new Map(); // profileKey -> { context, refs }
 
 function launchOptions() {
   const opts = {
@@ -29,52 +33,61 @@ function launchOptions() {
   };
   if (CHROME_PATH && fs.existsSync(CHROME_PATH)) opts.executablePath = CHROME_PATH;
   else if (fs.existsSync('/opt/pw-browsers/chromium')) opts.executablePath = '/opt/pw-browsers/chromium';
-  // Môi trường doanh nghiệp: cho trình duyệt nhúng đi qua proxy hệ thống nếu có
   const proxy = process.env.MSHUB_PROXY || process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
   if (proxy) opts.proxy = { server: proxy };
   return opts;
 }
 
-export function profileDir(accountId) {
-  return path.join(PROFILES_DIR, `acc_${accountId}`);
+/** Profile key cho một identity (nhiều kênh dùng chung). */
+export const identityKey = (identityId) => `id_${identityId}`;
+
+/** Profile key cho một bản ghi account (row từ bảng accounts). */
+export function accountKey(account) {
+  if (account && account.identity_id) return identityKey(account.identity_id);
+  const id = typeof account === 'object' ? account.id : account;
+  return `acc_${id}`;
 }
 
-/** Mở (hoặc dùng lại) context trình duyệt của một tài khoản. Nhớ gọi release. */
-export async function acquireContext(accountId) {
-  let entry = contexts.get(accountId);
+export function profileDir(profileKey) {
+  return path.join(PROFILES_DIR, profileKey);
+}
+
+/** Mở (hoặc dùng lại) context trình duyệt của một profile. Nhớ gọi release. */
+export async function acquireContext(profileKey) {
+  let entry = contexts.get(profileKey);
   if (entry) {
     entry.refs += 1;
     return entry.context;
   }
-  const context = await chromium.launchPersistentContext(profileDir(accountId), launchOptions());
+  const context = await chromium.launchPersistentContext(profileDir(profileKey), launchOptions());
   entry = { context, refs: 1 };
-  contexts.set(accountId, entry);
-  context.on('close', () => contexts.delete(accountId));
+  contexts.set(profileKey, entry);
+  context.on('close', () => contexts.delete(profileKey));
   return context;
 }
 
-export async function releaseContext(accountId) {
-  const entry = contexts.get(accountId);
+export async function releaseContext(profileKey) {
+  const entry = contexts.get(profileKey);
   if (!entry) return;
   entry.refs -= 1;
   if (entry.refs <= 0) {
-    contexts.delete(accountId);
+    contexts.delete(profileKey);
     await entry.context.close().catch(() => {});
   }
 }
 
-export async function destroyProfile(accountId) {
-  const entry = contexts.get(accountId);
+export async function destroyProfile(profileKey) {
+  const entry = contexts.get(profileKey);
   if (entry) {
-    contexts.delete(accountId);
+    contexts.delete(profileKey);
     await entry.context.close().catch(() => {});
   }
-  fs.rmSync(profileDir(accountId), { recursive: true, force: true });
+  fs.rmSync(profileDir(profileKey), { recursive: true, force: true });
 }
 
 export async function closeAll() {
-  for (const [id, entry] of contexts) {
-    contexts.delete(id);
+  for (const [key, entry] of contexts) {
+    contexts.delete(key);
     await entry.context.close().catch(() => {});
   }
 }

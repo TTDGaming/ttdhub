@@ -11,10 +11,14 @@ const VIEW_H = 800;
  * (stream JPEG qua WebSocket) và chuyển tiếp chuột/bàn phím của người dùng.
  * Mỗi phiên dùng một profile cách ly riêng cho tài khoản mới.
  */
-export default function ConnectModal({ platform, accountId, onClose }: {
+export default function ConnectModal({ platform, accountId, identityId, mode = 'single', onClose }: {
   platform: string;
   /** Có accountId = mở lại trình duyệt của kênh đã kết nối (đăng nhập lại / kiểm tra). */
   accountId?: number;
+  /** Có identityId = mở lại trình duyệt của tài khoản quản lý. */
+  identityId?: number;
+  /** 'manager' = đăng nhập một tài khoản Google rồi tự phát hiện tất cả kênh được quản lý. */
+  mode?: 'single' | 'manager';
   onClose: (connected: boolean) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -37,9 +41,14 @@ export default function ConnectModal({ platform, accountId, onClose }: {
 
     (async () => {
       try {
-        const { sessionId } = await api.post<{ sessionId: string }>(
-          accountId ? `/api/accounts/${accountId}/open-browser` : `/api/accounts/connect/${platform}`
-        );
+        const startUrl = identityId
+          ? `/api/identities/${identityId}/reopen`
+          : accountId
+            ? `/api/accounts/${accountId}/open-browser`
+            : mode === 'manager'
+              ? `/api/identities/connect/${platform}`
+              : `/api/accounts/connect/${platform}`;
+        const { sessionId } = await api.post<{ sessionId: string }>(startUrl);
         if (!alive) {
           api.post(`/api/accounts/connect/session/${sessionId}/cancel`).catch(() => {});
           return;
@@ -86,7 +95,7 @@ export default function ConnectModal({ platform, accountId, onClose }: {
       if (checkTimer) clearInterval(checkTimer);
       wsRef.current?.close();
     };
-  }, [platform, accountId]);
+  }, [platform, accountId, identityId, mode]);
 
   // Chuyển tọa độ chuột trên canvas về không gian 1280×800 của trình duyệt server
   const coords = (e: React.MouseEvent) => {
@@ -166,7 +175,7 @@ export default function ConnectModal({ platform, accountId, onClose }: {
         <div className="flex items-center justify-between px-5 py-3 border-b border-hairline">
           <div>
             <div className="font-semibold text-sm">
-              {accountId ? 'Trình duyệt kênh' : 'Kết nối kênh'} {PLATFORM_LABEL[platform] || platform}
+              {identityId ? 'Trình duyệt tài khoản quản lý' : accountId ? 'Trình duyệt kênh' : mode === 'manager' ? 'Kết nối tài khoản quản lý' : 'Kết nối kênh'} {PLATFORM_LABEL[platform] || platform}
             </div>
             <div className="text-[11px] text-muted truncate max-w-xl" title={url}>
               {url || 'Đang mở trang đăng nhập…'}

@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Chart tokens (palette đã validate) */
+  --surface-1: #fcfcfb;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #898781;
+  --gridline: #e1e0d9;
+  --baseline: #c3c2b7;
+  --series-blue: #2a78d6;
+  --series-aqua: #1baf7a;
+  --series-red: #e34948;
+  --delta-up: #006300;
+  --delta-down: #d03b3b;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  @apply bg-page text-ink font-sans antialiased;
+}
+
+.card {
+  @apply bg-surface rounded-xl border border-hairline shadow-card;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium
+    transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+}
+.btn-primary {
+  @apply btn bg-brand text-white hover:bg-brand-dark;
+}
+.btn-ghost {
+  @apply btn border border-hairline bg-surface text-ink-2 hover:bg-page;
+}
+.btn-danger {
+  @apply btn bg-[#d03b3b] text-white hover:bg-[#b32f2f];
+}
+
+.input {
+  @apply w-full rounded-lg border border-hairline bg-white px-3 py-2 text-sm text-ink
+    placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand;
+}
+
+.label {
+  @apply block text-xs font-medium text-ink-2 mb-1;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #d6d5cd; border-radius: 8px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-track { background: transparent; }

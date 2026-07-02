@@ -1,0 +1,11 @@
+services:
+  mshub:
+    build: .
+    container_name: mshub
+    restart: unless-stopped
+    ports:
+      - "3689:3689"
+    volumes:
+      - ./data:/app/data
+    # Chromium cần shm đủ lớn
+    shm_size: 1gb

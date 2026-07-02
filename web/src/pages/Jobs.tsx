@@ -4,6 +4,7 @@ import { api } from '../api';
 import { UploadJob } from '../types';
 import { PageHeader, PlatformBadge, Avatar, EmptyState, StatusPill } from '../components/bits';
 import { fmtTime } from '../format';
+import { IconQueue, IconPlus } from '../components/icons';
 
 const FILTERS = [
   { key: 'all', label: 'Tất cả' },
@@ -44,7 +45,7 @@ export default function Jobs() {
       <PageHeader
         title="Hàng đợi đăng video"
         subtitle="Tự cập nhật mỗi 3 giây — job lỗi có ảnh chụp màn hình trong data/debug để tra cứu"
-        actions={<Link to="/upload" className="btn-primary">+ Đăng video</Link>}
+        actions={<Link to="/upload" className="btn-primary"><IconPlus size={16} /> Đăng video</Link>}
       />
 
       <div className="flex items-center gap-1.5 mb-4">
@@ -58,10 +59,10 @@ export default function Jobs() {
         ))}
       </div>
 
-      {error && <div className="text-sm text-[#d03b3b] mb-4">{error}</div>}
+      {error && <div className="text-sm text-neg mb-4">{error}</div>}
 
       {shown.length === 0 ? (
-        <EmptyState icon="🗂️" title="Không có job nào" hint="Tạo lô đăng video mới từ trang Đăng video." />
+        <EmptyState icon={<IconQueue />} title="Không có job nào" hint="Tạo lô đăng video mới từ trang Đăng video." />
       ) : (
         <div className="card overflow-hidden">
           <table className="w-full text-sm">
@@ -77,7 +78,7 @@ export default function Jobs() {
             </thead>
             <tbody>
               {shown.map((j) => (
-                <tr key={j.id} className="border-b border-hairline last:border-0 align-top hover:bg-page/60">
+                <tr key={j.id} className="border-b border-hairline last:border-0 align-top row-hover">
                   <td className="px-5 py-3">
                     <div className="font-medium truncate max-w-[260px]" title={j.title}>{j.title}</div>
                     <div className="text-[11px] text-muted truncate max-w-[260px]">{j.original_name}</div>
@@ -86,7 +87,7 @@ export default function Jobs() {
                         Xem video →
                       </a>
                     )}
-                    {j.error && <div className="text-[11px] text-[#d03b3b] mt-1 max-w-[260px]">{j.error}</div>}
+                    {j.error && <div className="text-[11px] text-neg mt-1 max-w-[260px]">{j.error}</div>}
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-2">
@@ -106,7 +107,7 @@ export default function Jobs() {
                   <td className="px-3 py-3">
                     <div className="h-2 rounded-full bg-page overflow-hidden">
                       <div
-                        className={`h-full transition-all ${j.status === 'error' ? 'bg-[#d03b3b]' : j.status === 'done' ? 'bg-[#0ca30c]' : 'bg-brand'}`}
+                        className={`h-full transition-all ${j.status === 'error' ? 'bg-neg' : j.status === 'done' ? 'bg-pos-strong' : 'bg-brand'}`}
                         style={{ width: `${j.progress}%` }}
                       />
                     </div>
@@ -123,7 +124,7 @@ export default function Jobs() {
                       </button>
                     )}
                     {j.status === 'queued' && (
-                      <button className="text-xs text-[#d03b3b] hover:underline" onClick={() => act(() => api.post(`/api/uploads/jobs/${j.id}/cancel`))}>
+                      <button className="text-xs text-neg hover:underline" onClick={() => act(() => api.post(`/api/uploads/jobs/${j.id}/cancel`))}>
                         Hủy
                       </button>
                     )}

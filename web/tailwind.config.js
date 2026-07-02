@@ -1,25 +1,29 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        page: '#f9f9f7',
-        surface: '#fcfcfb',
-        ink: '#0b0b0b',
-        'ink-2': '#52514e',
-        muted: '#898781',
-        hairline: '#e1e0d9',
-        brand: '#2a78d6',
-        'brand-dark': '#1c5cab',
-        sidebar: '#101623',
-        'sidebar-2': '#1a2334',
+        page: 'rgb(var(--page-rgb) / <alpha-value>)',
+        surface: 'var(--surface)',
+        ink: 'var(--ink)',
+        'ink-2': 'var(--ink-2)',
+        muted: 'var(--muted)',
+        hairline: 'var(--hairline)',
+        brand: 'rgb(var(--brand-rgb) / <alpha-value>)',
+        'brand-hover': 'var(--brand-hover)',
+        pos: 'var(--pos)',
+        'pos-strong': 'var(--pos-strong)',
+        neg: 'var(--neg)',
+        sidebar: 'var(--sidebar)',
+        'sidebar-2': 'var(--sidebar-2)',
       },
       fontFamily: {
         sans: ['system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
       },
       boxShadow: {
-        card: '0 1px 2px rgba(11,11,11,0.04), 0 1px 3px rgba(11,11,11,0.06)',
+        card: 'var(--shadow-card)',
       },
     },
   },

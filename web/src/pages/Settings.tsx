@@ -42,7 +42,7 @@ function CurrencySetting() {
           <option value="VND">VND — đồng Việt Nam</option>
           <option value="EUR">EUR — euro</option>
         </select>
-        {saved && <span className="text-sm text-[#006300]">✓ Đã lưu</span>}
+        {saved && <span className="text-sm text-pos">✓ Đã lưu</span>}
       </div>
     </div>
   );
@@ -81,7 +81,7 @@ function ChangePassword() {
         <label className="label">Mật khẩu mới (≥ 6 ký tự)</label>
         <input className="input" type="password" value={next} onChange={(e) => setNext(e.target.value)} required minLength={6} />
       </div>
-      {msg && <div className={`text-sm ${msg.ok ? 'text-[#006300]' : 'text-[#d03b3b]'}`}>{msg.text}</div>}
+      {msg && <div className={`text-sm ${msg.ok ? 'text-pos' : 'text-neg'}`}>{msg.text}</div>}
       <button className="btn-primary" disabled={busy}>{busy && <Spinner />} Lưu</button>
     </form>
   );

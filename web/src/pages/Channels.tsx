@@ -4,6 +4,7 @@ import { api } from '../api';
 import { Account } from '../types';
 import { PageHeader, PlatformBadge, Avatar, EmptyState, StatusPill, MonetizedBadge } from '../components/bits';
 import ConnectModal from '../components/ConnectModal';
+import { IconChannels, IconPlus } from '../components/icons';
 import { fmtCompact, fmtDelta, PLATFORM_LABEL } from '../format';
 
 const PLATFORMS: { key: string; hint: string }[] = [
@@ -32,18 +33,18 @@ export default function Channels() {
           <div className="flex gap-2">
             {PLATFORMS.map((p) => (
               <button key={p.key} className="btn-ghost" title={p.hint} onClick={() => setConnecting(p.key)}>
-                + {PLATFORM_LABEL[p.key]}
+                <IconPlus size={15} /> {PLATFORM_LABEL[p.key]}
               </button>
             ))}
           </div>
         }
       />
 
-      {error && <div className="text-sm text-[#d03b3b] mb-4">{error}</div>}
+      {error && <div className="text-sm text-neg mb-4">{error}</div>}
 
       {accounts && accounts.length === 0 && (
         <EmptyState
-          icon="🔗"
+          icon={<IconChannels />}
           title="Chưa kết nối kênh nào"
           hint='Bấm "+ YouTube / TikTok / Facebook" phía trên, đăng nhập trong trình duyệt nhúng là xong — không cần API key, không đụng vào trang quản lý gốc.'
         />
@@ -92,7 +93,7 @@ export default function Channels() {
 function MiniStat({ label, value, positive }: { label: string; value: string; positive?: boolean }) {
   return (
     <div className="rounded-lg bg-page px-2 py-2">
-      <div className={`text-sm font-semibold ${positive ? 'text-[#006300]' : ''}`}>{value}</div>
+      <div className={`text-sm font-semibold ${positive ? 'text-pos' : ''}`}>{value}</div>
       <div className="text-[10px] text-muted mt-0.5">{label}</div>
     </div>
   );

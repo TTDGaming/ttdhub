@@ -19,7 +19,7 @@ function ChartTooltip({ active, payload, label, labelFormatter, valueFormatter }
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-hairline bg-white px-3 py-2 shadow-card text-xs">
+    <div className="rounded-lg border border-hairline bg-surface px-3 py-2 shadow-card text-xs">
       <div className="text-muted mb-1">
         {labelFormatter && label != null ? labelFormatter(label) : label}
       </div>
@@ -44,7 +44,7 @@ export function TimeAreaChart({ data, dataKey, name, color, height = 260 }: {
   color: string;
   height?: number;
 }) {
-  const gradId = `grad_${dataKey}_${color.replace('#', '')}`;
+  const gradId = `grad_${dataKey}_${color.replace(/[^a-zA-Z0-9]/g, '')}`;
   return (
     <ResponsiveContainer width="100%" height={height}>
       <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
@@ -120,7 +120,7 @@ export function TimeBarChart({ data, dataKey, name, color, height = 220, xKey = 
         />
         <Tooltip
           content={<ChartTooltip labelFormatter={xFormatter} valueFormatter={valueFormatter} />}
-          cursor={{ fill: 'rgba(11,11,11,0.04)' }}
+          cursor={{ fill: 'var(--hover-wash)' }}
         />
         <Bar dataKey={dataKey} name={name} fill={color} radius={[4, 4, 0, 0]} maxBarSize={28} />
       </BarChart>

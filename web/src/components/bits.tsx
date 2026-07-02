@@ -25,7 +25,7 @@ export function StatCard({ label, value, delta, hint }: {
       <div className="text-2xl font-semibold mt-1.5">{value}</div>
       <div className="mt-1 text-xs flex items-center gap-1.5 min-h-[16px]">
         {delta != null && delta !== 0 && (
-          <span className={delta > 0 ? 'text-[#006300] font-medium' : 'text-[#d03b3b] font-medium'}>
+          <span className={delta > 0 ? 'text-pos font-medium' : 'text-neg font-medium'}>
             {delta > 0 ? '▲' : '▼'} {fmtDelta(delta)}
           </span>
         )}
@@ -36,16 +36,17 @@ export function StatCard({ label, value, delta, hint }: {
 }
 
 export function PlatformBadge({ platform }: { platform: string }) {
+  const color = PLATFORM_COLOR[platform];
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium border"
       style={{
-        color: PLATFORM_COLOR[platform],
-        borderColor: `${PLATFORM_COLOR[platform]}55`,
-        background: `${PLATFORM_COLOR[platform]}0f`,
+        color,
+        borderColor: `color-mix(in srgb, ${color} 35%, transparent)`,
+        background: `color-mix(in srgb, ${color} 7%, transparent)`,
       }}
     >
-      <span className="w-1.5 h-1.5 rounded-full" style={{ background: PLATFORM_COLOR[platform] }} />
+      <span className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
       {PLATFORM_LABEL[platform] || platform}
     </span>
   );
@@ -82,12 +83,12 @@ export function Spinner({ className = '' }: { className?: string }) {
 }
 
 export function EmptyState({ icon, title, hint, action }: {
-  icon: string; title: string; hint?: string; action?: ReactNode;
+  icon: ReactNode; title: string; hint?: string; action?: ReactNode;
 }) {
   return (
     <div className="card grid place-items-center py-14 text-center">
       <div>
-        <div className="text-4xl mb-3">{icon}</div>
+        <div className="text-muted mb-3 grid place-items-center [&>svg]:w-10 [&>svg]:h-10 text-4xl">{icon}</div>
         <div className="font-medium">{title}</div>
         {hint && <div className="text-sm text-muted mt-1 max-w-sm mx-auto">{hint}</div>}
         {action && <div className="mt-4">{action}</div>}
@@ -96,34 +97,44 @@ export function EmptyState({ icon, title, hint, action }: {
   );
 }
 
+const DOT = <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0" />;
+
 /** Nhãn trạng thái bật kiếm tiền của kênh. */
 export function MonetizedBadge({ value }: { value: 'yes' | 'no' | 'unknown' }) {
   const map = {
-    yes: { label: 'Đã BKT', cls: 'bg-[#0ca30c]/10 text-[#006300] border-[#0ca30c]/30', icon: '💰' },
-    no: { label: 'Chưa BKT', cls: 'bg-page text-ink-2 border-hairline', icon: '🚫' },
-    unknown: { label: 'BKT: chưa rõ', cls: 'bg-page text-muted border-hairline border-dashed', icon: '❔' },
-  }[value] || { label: value, cls: 'bg-page text-muted border-hairline', icon: '❔' };
+    yes: { label: 'Đã BKT', cls: 'chip-good' },
+    no: { label: 'Chưa BKT', cls: 'chip-neutral' },
+    unknown: { label: 'BKT: chưa rõ', cls: 'chip-faded' },
+  }[value] || { label: value, cls: 'chip-faded' };
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${map.cls}`}>
-      <span>{map.icon}</span> {map.label}
+    <span className={`chip ${map.cls}`}>
+      {DOT} {map.label}
     </span>
   );
 }
 
 export function StatusPill({ status }: { status: string }) {
-  const map: Record<string, { label: string; cls: string; icon: string }> = {
-    queued: { label: 'Đang chờ', cls: 'bg-page text-ink-2 border-hairline', icon: '🕒' },
-    uploading: { label: 'Đang đăng', cls: 'bg-[#2a78d6]/10 text-[#1c5cab] border-[#2a78d6]/30', icon: '⬆️' },
-    done: { label: 'Hoàn tất', cls: 'bg-[#0ca30c]/10 text-[#006300] border-[#0ca30c]/30', icon: '✅' },
-    error: { label: 'Cần đăng nhập lại', cls: 'bg-[#d03b3b]/10 text-[#d03b3b] border-[#d03b3b]/30', icon: '⚠️' },
-    canceled: { label: 'Đã hủy', cls: 'bg-page text-muted border-hairline', icon: '⛔' },
-    active: { label: 'Hoạt động', cls: 'bg-[#0ca30c]/10 text-[#006300] border-[#0ca30c]/30', icon: '✅' },
-    connecting: { label: 'Đang kết nối', cls: 'bg-page text-ink-2 border-hairline', icon: '🕒' },
+  const map: Record<string, { label: string; cls: string }> = {
+    queued: { label: 'Đang chờ', cls: 'chip-neutral' },
+    uploading: { label: 'Đang đăng', cls: 'chip-info' },
+    done: { label: 'Hoàn tất', cls: 'chip-good' },
+    error: { label: 'Lỗi', cls: 'chip-bad' },
+    canceled: { label: 'Đã hủy', cls: 'chip-faded' },
+    active: { label: 'Hoạt động', cls: 'chip-good' },
+    connecting: { label: 'Đang kết nối', cls: 'chip-neutral' },
   };
-  const s = map[status] || { label: status, cls: 'bg-page text-ink-2 border-hairline', icon: '•' };
+  const s = map[status] || { label: status, cls: 'chip-neutral' };
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium ${s.cls}`}>
-      <span>{s.icon}</span> {s.label}
+    <span className={`chip ${s.cls}`}>
+      {DOT} {s.label}
     </span>
   );
+}
+
+/** Riêng cho trạng thái tài khoản: 'error' nghĩa là hết phiên đăng nhập. */
+export function AccountStatusPill({ status }: { status: string }) {
+  if (status === 'error') {
+    return <span className="chip chip-bad">{DOT} Cần đăng nhập lại</span>;
+  }
+  return <StatusPill status={status} />;
 }

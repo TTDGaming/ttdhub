@@ -54,9 +54,9 @@ export const PLATFORM_LABEL: Record<string, string> = {
   facebook: 'Facebook',
 };
 
-/** Màu series theo nền tảng — lấy từ palette categorical đã validate. */
+/** Màu series theo nền tảng — CSS variable, tự đổi giữa theme sáng/tối. */
 export const PLATFORM_COLOR: Record<string, string> = {
-  youtube: '#e34948',
-  tiktok: '#1baf7a',
-  facebook: '#2a78d6',
+  youtube: 'var(--c-youtube)',
+  tiktok: 'var(--c-tiktok)',
+  facebook: 'var(--c-facebook)',
 };

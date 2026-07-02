@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { Account } from '../types';
 import { PageHeader, PlatformBadge, Avatar, Spinner } from '../components/bits';
+import { IconFilm, IconUpload } from '../components/icons';
 
 interface VideoItem {
   file: File;
@@ -144,10 +145,10 @@ export default function Upload() {
             {items.map((it, i) => (
               <div key={i} className="rounded-lg border border-hairline px-4 py-3">
                 <div className="flex items-center justify-between gap-3 mb-2">
-                  <div className="text-xs text-muted truncate">
-                    🎬 {it.file.name} · {(it.file.size / 1024 / 1024).toFixed(1)} MB
+                  <div className="text-xs text-muted truncate flex items-center gap-1.5">
+                    <IconFilm size={13} /> {it.file.name} · {(it.file.size / 1024 / 1024).toFixed(1)} MB
                   </div>
-                  <button className="text-xs text-[#d03b3b] hover:underline shrink-0"
+                  <button className="text-xs text-neg hover:underline shrink-0"
                     onClick={() => setItems((prev) => prev.filter((_, idx) => idx !== i))}>
                     Xóa
                   </button>
@@ -205,7 +206,7 @@ export default function Upload() {
             {totalSize > 0 && <> · tổng {(totalSize / 1024 / 1024).toFixed(0)} MB</>}
           </div>
           <button className="btn-primary" onClick={submit} disabled={busy || !jobCount}>
-            {busy ? <Spinner /> : '🚀'} {busy ? `Đang gửi lên server ${progress}%` : 'Đưa vào hàng đợi'}
+            {busy ? <Spinner /> : <IconUpload size={16} />} {busy ? `Đang gửi lên server ${progress}%` : 'Đưa vào hàng đợi'}
           </button>
         </div>
         {busy && (
@@ -213,7 +214,7 @@ export default function Upload() {
             <div className="h-full bg-brand transition-all" style={{ width: `${progress}%` }} />
           </div>
         )}
-        {error && <div className="text-sm text-[#d03b3b] mt-3">{error}</div>}
+        {error && <div className="text-sm text-neg mt-3">{error}</div>}
       </div>
     </div>
   );

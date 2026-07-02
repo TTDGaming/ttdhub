@@ -174,9 +174,7 @@ export default function ConnectModal({ platform, accountId, onClose }: {
           </div>
           <div className="flex items-center gap-2">
             {loggedIn ? (
-              <span className="text-xs font-medium text-[#006300] bg-[#0ca30c]/10 border border-[#0ca30c]/30 rounded-full px-2.5 py-1">
-                ✅ Đã phát hiện đăng nhập
-              </span>
+              <span className="chip chip-good !px-2.5 !py-1">Đã phát hiện đăng nhập ✓</span>
             ) : (
               <span className="text-xs text-muted">Đăng nhập tài khoản của bạn trong khung bên dưới</span>
             )}
@@ -188,7 +186,7 @@ export default function ConnectModal({ platform, accountId, onClose }: {
         </div>
 
         {error && (
-          <div className="px-5 py-2 text-sm text-[#d03b3b] bg-[#d03b3b]/5 border-b border-[#d03b3b]/20">{error}</div>
+          <div className="px-5 py-2 text-sm text-neg border-b border-hairline">{error}</div>
         )}
 
         <div className="relative bg-black">

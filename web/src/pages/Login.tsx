@@ -55,7 +55,7 @@ export default function Login({ needsSetup, onDone }: { needsSetup: boolean; onD
               <input className="input" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required minLength={6} />
             </div>
           )}
-          {error && <div className="text-sm text-[#d03b3b]">{error}</div>}
+          {error && <div className="text-sm text-neg">{error}</div>}
           <button className="btn-primary w-full" disabled={busy}>
             {busy && <Spinner />} {needsSetup ? 'Khởi tạo & đăng nhập' : 'Đăng nhập'}
           </button>

@@ -5,6 +5,7 @@ import { Account, HistoryPoint } from '../types';
 import { PlatformBadge, Avatar, Spinner, StatCard, MonetizedBadge, StatusPill } from '../components/bits';
 import { TimeAreaChart, TimeBarChart } from '../components/charts';
 import ConnectModal from '../components/ConnectModal';
+import { IconGlobe, IconRefresh } from '../components/icons';
 import { fmtCompact, fmtDayHour, fmtPercent, fmtTime, PLATFORM_COLOR } from '../format';
 
 const RANGES = [
@@ -114,22 +115,22 @@ export default function ChannelDetail() {
         </div>
         <div className="flex gap-2 shrink-0">
           <button className="btn-ghost" onClick={() => setBrowserOpen(true)} title="Mở trình duyệt cách ly của kênh — đăng nhập lại khi hết phiên, kiểm tra kênh">
-            🌐 Trình duyệt kênh
+            <IconGlobe size={16} /> Trình duyệt kênh
           </button>
           <button className="btn-ghost" onClick={refresh} disabled={busy}>
-            {busy ? <Spinner /> : '🔄'} Lấy số liệu
+            {busy ? <Spinner /> : <IconRefresh size={16} />} Lấy số liệu
           </button>
           <button className="btn-danger" onClick={remove}>Gỡ kênh</button>
         </div>
       </div>
 
       {account.status === 'error' && (
-        <div className="mb-4 rounded-lg border border-[#d03b3b]/30 bg-[#d03b3b]/5 px-4 py-3 text-sm text-[#d03b3b] flex items-center justify-between">
-          <span>⚠️ Phiên đăng nhập của kênh đã hết hạn — các job đăng video đang tạm dừng.</span>
+        <div className="mb-4 alert-neg flex items-center justify-between gap-3">
+          <span>Phiên đăng nhập của kênh đã hết hạn — các job đăng video đang tạm dừng.</span>
           <button className="btn-primary !py-1.5" onClick={() => setBrowserOpen(true)}>Đăng nhập lại</button>
         </div>
       )}
-      {error && <div className="text-sm text-[#d03b3b] mb-4">{error}</div>}
+      {error && <div className="text-sm text-neg mb-4">{error}</div>}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard label="Follower" value={fmtCompact(account.stats?.followers)} delta={account.stats?.followers48h} hint="48h" />
@@ -156,11 +157,11 @@ export default function ChannelDetail() {
           Tốc độ tăng trưởng ({RANGES.find((r) => r.key === range)?.label}):{' '}
           {hasViews && (
             <span className="mr-3">
-              view <b className={growthRate.views && growthRate.views > 0 ? 'text-[#006300]' : 'text-ink'}>{fmtPercent(growthRate.views)}</b>
+              view <b className={growthRate.views && growthRate.views > 0 ? 'text-pos' : 'text-ink'}>{fmtPercent(growthRate.views)}</b>
             </span>
           )}
           <span>
-            follower <b className={growthRate.followers && growthRate.followers > 0 ? 'text-[#006300]' : 'text-ink'}>{fmtPercent(growthRate.followers)}</b>
+            follower <b className={growthRate.followers && growthRate.followers > 0 ? 'text-pos' : 'text-ink'}>{fmtPercent(growthRate.followers)}</b>
           </span>
         </div>
       </div>
@@ -172,11 +173,11 @@ export default function ChannelDetail() {
           </ChartCard>
         )}
         <ChartCard title="Follower / Người đăng ký">
-          <TimeAreaChart data={data} dataKey="followers" name="Follower" color="#2a78d6" height={220} />
+          <TimeAreaChart data={data} dataKey="followers" name="Follower" color="var(--series-blue)" height={220} />
         </ChartCard>
         {hasLikes && (
           <ChartCard title="Lượt thích">
-            <TimeAreaChart data={data} dataKey="likes" name="Lượt thích" color="#1baf7a" height={220} />
+            <TimeAreaChart data={data} dataKey="likes" name="Lượt thích" color="var(--series-aqua)" height={220} />
           </ChartCard>
         )}
       </div>
@@ -190,12 +191,12 @@ export default function ChannelDetail() {
         )}
         {growthSeries.followers.length >= 2 && (
           <ChartCard title={`Follower mới theo ${growthUnit}`}>
-            <TimeBarChart data={growthSeries.followers} dataKey="delta" name="Follower mới" color="#2a78d6" xFormatter={fmtDayHour} />
+            <TimeBarChart data={growthSeries.followers} dataKey="delta" name="Follower mới" color="var(--series-blue)" xFormatter={fmtDayHour} />
           </ChartCard>
         )}
         {!hasViews && growthSeries.likes.length >= 2 && (
           <ChartCard title={`Lượt thích mới theo ${growthUnit}`}>
-            <TimeBarChart data={growthSeries.likes} dataKey="delta" name="Tim mới" color="#1baf7a" xFormatter={fmtDayHour} />
+            <TimeBarChart data={growthSeries.likes} dataKey="delta" name="Tim mới" color="var(--series-aqua)" xFormatter={fmtDayHour} />
           </ChartCard>
         )}
       </div>
@@ -279,7 +280,7 @@ function ChannelSettings({ account, onSaved }: { account: Account; onSaved: () =
       </div>
       <div className="mt-3 flex items-center gap-3">
         <button className="btn-primary" onClick={save} disabled={busy}>{busy && <Spinner />} Lưu thiết lập</button>
-        {saved && <span className="text-sm text-[#006300]">✓ Đã lưu</span>}
+        {saved && <span className="text-sm text-pos">✓ Đã lưu</span>}
         <span className="text-xs text-muted">RPM dùng để ước tính doanh thu ở trang Doanh thu (kênh YouTube).</span>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { api } from '../api';
 import { RevenueEntry, RevenueSummary } from '../types';
 import { PageHeader, StatCard, PlatformBadge, Avatar, EmptyState, MonetizedBadge, Spinner } from '../components/bits';
 import { TimeBarChart } from '../components/charts';
+import { IconChannels, IconDownload, IconPlus } from '../components/icons';
 import { fmtCompact, fmtMoney, fmtMonth } from '../format';
 
 export default function Revenue() {
@@ -22,7 +23,7 @@ export default function Revenue() {
   }, []);
   useEffect(() => { load().catch((e) => setError(e.message)); }, [load]);
 
-  if (error) return <div className="text-sm text-[#d03b3b]">{error}</div>;
+  if (error) return <div className="text-sm text-neg">{error}</div>;
   if (!data) return <div className="text-sm text-muted">Đang tải…</div>;
   const cur = data.currency;
 
@@ -33,8 +34,8 @@ export default function Revenue() {
         subtitle="Ghi nhận doanh thu theo tháng cho từng kênh; ước tính tự động từ RPM × view"
         actions={
           <div className="flex gap-2">
-            <a href="/api/revenue/export.csv" className="btn-ghost" download>⬇️ Xuất CSV</a>
-            <button className="btn-primary" onClick={() => setShowAdd(true)}>+ Ghi nhận doanh thu</button>
+            <a href="/api/revenue/export.csv" className="btn-ghost" download><IconDownload size={16} /> Xuất CSV</a>
+            <button className="btn-primary" onClick={() => setShowAdd(true)}><IconPlus size={16} /> Ghi nhận doanh thu</button>
           </div>
         }
       />
@@ -59,7 +60,7 @@ export default function Revenue() {
           data={data.monthly}
           dataKey="total"
           name="Doanh thu"
-          color="#2a78d6"
+          color="var(--series-blue)"
           xKey="month"
           xFormatter={fmtMonth}
           valueFormatter={(v) => fmtMoney(v, cur)}
@@ -69,7 +70,7 @@ export default function Revenue() {
       <div className="card overflow-hidden mb-6">
         <div className="px-5 py-3.5 border-b border-hairline font-semibold text-sm">Doanh thu từng kênh</div>
         {data.accounts.length === 0 ? (
-          <EmptyState icon="📡" title="Chưa có kênh" hint="Kết nối kênh trước ở trang Kênh." />
+          <EmptyState icon={<IconChannels />} title="Chưa có kênh" hint="Kết nối kênh trước ở trang Kênh." />
         ) : (
           <table className="w-full text-sm">
             <thead>
@@ -85,7 +86,7 @@ export default function Revenue() {
             </thead>
             <tbody>
               {data.accounts.map((acc) => (
-                <tr key={acc.id} className="border-b border-hairline last:border-0 hover:bg-page/60">
+                <tr key={acc.id} className="border-b border-hairline last:border-0 row-hover">
                   <td className="px-5 py-3">
                     <Link to={`/channels/${acc.id}`} className="flex items-center gap-2.5 group">
                       <Avatar url={acc.avatarUrl} name={acc.name} size={28} />
@@ -126,7 +127,7 @@ export default function Revenue() {
           <table className="w-full text-sm">
             <tbody>
               {entries.map((e) => (
-                <tr key={e.id} className="border-b border-hairline last:border-0 hover:bg-page/60">
+                <tr key={e.id} className="border-b border-hairline last:border-0 row-hover">
                   <td className="px-5 py-2.5 w-28 font-medium tabular-nums">{fmtMonth(e.month)}</td>
                   <td className="px-3 py-2.5">
                     <span className="font-medium">{e.account_name}</span>{' '}
@@ -136,7 +137,7 @@ export default function Revenue() {
                   <td className="px-3 py-2.5 text-right font-medium tabular-nums">{fmtMoney(e.amount, cur)}</td>
                   <td className="px-5 py-2.5 w-16 text-right">
                     <button
-                      className="text-xs text-[#d03b3b] hover:underline"
+                      className="text-xs text-neg hover:underline"
                       onClick={async () => { await api.delete(`/api/revenue/entries/${e.id}`); load(); }}
                     >
                       Xóa
@@ -215,7 +216,7 @@ function AddEntryModal({ accounts, currency, onClose }: {
           <label className="label">Ghi chú (tùy chọn)</label>
           <input className="input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="AdSense, Creator Rewards..." />
         </div>
-        {error && <div className="text-sm text-[#d03b3b]">{error}</div>}
+        {error && <div className="text-sm text-neg">{error}</div>}
         <div className="flex justify-end gap-2">
           <button type="button" className="btn-ghost" onClick={() => onClose(false)}>Hủy</button>
           <button className="btn-primary" disabled={busy}>{busy && <Spinner />} Lưu</button>

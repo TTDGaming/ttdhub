@@ -52,18 +52,33 @@ export function profileDir(profileKey) {
   return path.join(PROFILES_DIR, profileKey);
 }
 
+const launching = new Map(); // profileKey -> Promise đang mở context
+
 /** Mở (hoặc dùng lại) context trình duyệt của một profile. Nhớ gọi release. */
 export async function acquireContext(profileKey) {
-  let entry = contexts.get(profileKey);
+  const entry = contexts.get(profileKey);
   if (entry) {
     entry.refs += 1;
     return entry.context;
   }
-  const context = await chromium.launchPersistentContext(profileDir(profileKey), launchOptions());
-  entry = { context, refs: 1 };
-  contexts.set(profileKey, entry);
-  context.on('close', () => contexts.delete(profileKey));
-  return context;
+  // Nhiều kênh của cùng một identity có thể gọi đồng thời — phải chờ chung một
+  // lần khởi động, nếu không 2 Chromium cùng mở một user-data-dir (SingletonLock)
+  // và refcount bị ghi đè (context đang dùng có thể bị đóng nhầm).
+  const inflight = launching.get(profileKey);
+  if (inflight) {
+    await inflight.catch(() => {});
+    return acquireContext(profileKey);
+  }
+  const promise = chromium.launchPersistentContext(profileDir(profileKey), launchOptions());
+  launching.set(profileKey, promise);
+  try {
+    const context = await promise;
+    contexts.set(profileKey, { context, refs: 1 });
+    context.on('close', () => contexts.delete(profileKey));
+    return context;
+  } finally {
+    launching.delete(profileKey);
+  }
 }
 
 export async function releaseContext(profileKey) {

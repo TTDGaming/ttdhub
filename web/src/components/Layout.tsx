@@ -3,14 +3,15 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { ThemeMode, useTheme } from '../theme';
 import AppBar from './AppBar';
 import CommandPalette from './CommandPalette';
+import { useNotifications } from './Notifications';
 import {
-  IconChannels, IconCoins, IconDashboard, IconLogout, IconMonitor, IconMoon,
+  IconBell, IconChannels, IconCoins, IconDashboard, IconLogout, IconMonitor, IconMoon,
   IconQueue, IconSettings, IconSun, IconUpload,
 } from './icons';
 
 type Icon = ComponentType<SVGProps<SVGSVGElement> & { size?: number }>;
 
-const SECTIONS: { title: string; items: { to: string; label: string; icon: Icon }[] }[] = [
+const SECTIONS: { title: string; items: { to: string; label: string; icon: Icon; badge?: 'unread' }[] }[] = [
   {
     title: 'Điều hướng',
     items: [
@@ -31,7 +32,10 @@ const SECTIONS: { title: string; items: { to: string; label: string; icon: Icon 
   },
   {
     title: 'Hệ thống',
-    items: [{ to: '/settings', label: 'Cài đặt', icon: IconSettings }],
+    items: [
+      { to: '/notifications', label: 'Thông báo', icon: IconBell, badge: 'unread' },
+      { to: '/settings', label: 'Cài đặt', icon: IconSettings },
+    ],
   },
 ];
 
@@ -41,6 +45,7 @@ export default function Layout({ username, onLogout, children }: {
   children: ReactNode;
 }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const { unread } = useNotifications();
   const loc = useLocation();
   const parts = loc.pathname.split('/').filter(Boolean);
   // Trong "Studio kênh" mọi tab con dùng chung một key để không remount shell.
@@ -78,7 +83,7 @@ export default function Layout({ username, onLogout, children }: {
                 {section.title}
               </div>
               <div className="space-y-0.5">
-                {section.items.map(({ to, label, icon: Icon }) => (
+                {section.items.map(({ to, label, icon: Icon, badge }) => (
                   <NavLink
                     key={to}
                     to={to}
@@ -91,7 +96,12 @@ export default function Layout({ username, onLogout, children }: {
                     style={({ isActive }) => (isActive ? {} : { color: 'var(--sidebar-ink)' })}
                   >
                     <Icon size={17} className="shrink-0 opacity-90" />
-                    {label}
+                    <span className="flex-1">{label}</span>
+                    {badge === 'unread' && unread > 0 && (
+                      <span className="min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold text-white grid place-items-center shrink-0" style={{ background: 'var(--neg)' }}>
+                        {unread > 99 ? '99+' : unread}
+                      </span>
+                    )}
                   </NavLink>
                 ))}
               </div>

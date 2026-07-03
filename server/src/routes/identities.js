@@ -5,6 +5,7 @@ import { acquireContext, releaseContext, destroyProfile, identityKey } from '../
 import { getPlatform } from '../services/platforms/index.js';
 import { startManagerSession } from '../services/loginSession.js';
 import { refreshAccountStats } from '../services/poller.js';
+import { notify } from '../services/notify.js';
 
 export const identitiesRouter = express.Router();
 
@@ -165,6 +166,12 @@ identitiesRouter.post('/:id/rediscover', asyncHandler(async (req, res) => {
     });
     tx();
     db.prepare("UPDATE identities SET status = 'active', last_synced_at = ? WHERE id = ?").run(now(), idn.id);
+    notify({
+      level: 'info',
+      title: 'Đã quét kênh',
+      body: `${idn.name || idn.email || 'Tài khoản quản lý'}: phát hiện ${ids.length} kênh`,
+      link: '/channels',
+    });
     for (const accId of ids) refreshAccountStats(accId).catch(() => {});
     res.json({ ok: true, channels: ids.length });
   } finally {

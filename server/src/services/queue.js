@@ -3,6 +3,7 @@ import { db, now } from '../db.js';
 import { UPLOAD_CONCURRENCY } from '../config.js';
 import { acquireContext, releaseContext, accountKey } from './browser.js';
 import { getPlatform } from './platforms/index.js';
+import { notify } from './notify.js';
 
 /**
  * Hàng đợi đăng video: chạy tối đa UPLOAD_CONCURRENCY job song song,
@@ -77,6 +78,13 @@ async function runJob(job) {
     db.prepare(
       "UPDATE upload_jobs SET status = 'done', progress = 100, remote_url = ?, finished_at = ? WHERE id = ?"
     ).run(result?.remoteUrl || null, now(), job.id);
+    notify({
+      level: 'success',
+      title: 'Đăng video thành công',
+      body: `"${job.title}" → ${account?.name || 'kênh'}`,
+      link: result?.remoteUrl || '/jobs',
+      accountId: job.account_id,
+    });
   } catch (err) {
     const message = String(err?.message || err);
     db.prepare("UPDATE upload_jobs SET status = 'error', error = ?, finished_at = ? WHERE id = ?").run(
@@ -89,6 +97,22 @@ async function runJob(job) {
       if (account?.identity_id) {
         db.prepare("UPDATE identities SET status = 'error' WHERE id = ?").run(account.identity_id);
       }
+      notify({
+        level: 'warning',
+        title: 'Kênh cần đăng nhập lại',
+        body: `${account?.name || 'Kênh'} — phiên đăng nhập đã hết hạn, các video đang chờ sẽ tạm dừng`,
+        link: `/channels/${job.account_id}`,
+        accountId: job.account_id,
+        dedupKey: `reauth-${account?.identity_id ? `idn${account.identity_id}` : job.account_id}`,
+      });
+    } else {
+      notify({
+        level: 'error',
+        title: 'Đăng video thất bại',
+        body: `"${job.title}" → ${account?.name || 'kênh'}: ${message.slice(0, 160)}`,
+        link: '/jobs',
+        accountId: job.account_id,
+      });
     }
   } finally {
     if (context) await releaseContext(profileKey);

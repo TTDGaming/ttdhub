@@ -2,6 +2,7 @@ import { db, now } from '../db.js';
 import { POLL_INTERVAL_MIN } from '../config.js';
 import { acquireContext, releaseContext, accountKey } from './browser.js';
 import { getPlatform } from './platforms/index.js';
+import { notify } from './notify.js';
 
 /**
  * Bộ thu số liệu: định kỳ mở phiên (cách ly) của từng tài khoản,
@@ -38,7 +39,21 @@ export async function pollAll() {
       try {
         await refreshAccountStats(id);
       } catch (err) {
-        console.error(`[poller] Lỗi thu số liệu tài khoản ${id}:`, err.message);
+        const message = String(err?.message || err);
+        console.error(`[poller] Lỗi thu số liệu tài khoản ${id}:`, message);
+        if (/hết hạn/i.test(message)) {
+          const acc = db.prepare('SELECT name, identity_id FROM accounts WHERE id = ?').get(id);
+          db.prepare("UPDATE accounts SET status = 'error' WHERE id = ?").run(id);
+          if (acc?.identity_id) db.prepare("UPDATE identities SET status = 'error' WHERE id = ?").run(acc.identity_id);
+          notify({
+            level: 'warning',
+            title: 'Kênh cần đăng nhập lại',
+            body: `${acc?.name || 'Kênh'} — phiên hết hạn khi thu số liệu`,
+            link: `/channels/${id}`,
+            accountId: id,
+            dedupKey: `reauth-${acc?.identity_id ? `idn${acc.identity_id}` : id}`,
+          });
+        }
       }
     }
   } finally {

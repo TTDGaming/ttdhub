@@ -159,6 +159,22 @@ ensureColumn('accounts', 'is_manager', 'is_manager INTEGER NOT NULL DEFAULT 0');
 db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_accounts_identity_ext ON accounts(identity_id, external_id)');
 db.exec('CREATE INDEX IF NOT EXISTS idx_accounts_identity ON accounts(identity_id)');
 
+// Trung tâm thông báo: lưu các sự kiện quan trọng (đăng xong, lỗi, hết phiên...).
+db.exec(`
+CREATE TABLE IF NOT EXISTS notifications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  level TEXT NOT NULL DEFAULT 'info',    -- info | success | warning | error
+  title TEXT NOT NULL,
+  body TEXT,
+  link TEXT,
+  account_id INTEGER,
+  dedup_key TEXT,
+  read INTEGER NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(id DESC);
+`);
+
 export const now = () => Date.now();
 
 export function getSetting(key, fallback = null) {

@@ -214,6 +214,17 @@ export interface UploadJob {
   finished_at: number | null;
 }
 
+export interface AppNotification {
+  id: number;
+  level: 'info' | 'success' | 'warning' | 'error';
+  title: string;
+  body: string | null;
+  link: string | null;
+  accountId: number | null;
+  read: boolean;
+  createdAt: number;
+}
+
 export interface HistoryPoint {
   t: number;
   views: number | null;

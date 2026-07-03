@@ -19,6 +19,19 @@ export function fmtTime(ts: number | null | undefined): string {
   return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(ts));
 }
 
+export function fmtRelative(ts: number | null | undefined): string {
+  if (!ts) return '—';
+  const s = Math.round((Date.now() - ts) / 1000);
+  if (s < 60) return 'vừa xong';
+  const m = Math.round(s / 60);
+  if (m < 60) return `${m} phút trước`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h} giờ trước`;
+  const d = Math.round(h / 24);
+  if (d < 7) return `${d} ngày trước`;
+  return fmtTime(ts);
+}
+
 export function fmtHour(ts: number): string {
   return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(new Date(ts));
 }

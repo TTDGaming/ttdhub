@@ -6,7 +6,7 @@ import { Modal } from './Modal';
 import { Avatar, PlatformBadge } from './bits';
 import { useTheme } from '../theme';
 import {
-  IconChannels, IconChart, IconCoins, IconDashboard, IconLink, IconQueue, IconSearch, IconSettings, IconUpload,
+  IconBell, IconChannels, IconChart, IconCoins, IconDashboard, IconLink, IconQueue, IconSearch, IconSettings, IconUpload,
 } from './icons';
 
 interface Cmd {
@@ -44,7 +44,8 @@ export default function CommandPalette({ open, onClose }: { open: boolean; onClo
       { id: 'n3', label: 'Đăng video', icon: <IconUpload size={16} />, run: () => go('/upload'), keywords: 'upload post' },
       { id: 'n4', label: 'Hàng đợi', icon: <IconQueue size={16} />, run: () => go('/jobs'), keywords: 'jobs queue' },
       { id: 'n5', label: 'Doanh thu', icon: <IconCoins size={16} />, run: () => go('/revenue'), keywords: 'revenue money' },
-      { id: 'n6', label: 'Cài đặt', icon: <IconSettings size={16} />, run: () => go('/settings'), keywords: 'settings' },
+      { id: 'n6', label: 'Thông báo', icon: <IconBell size={16} />, run: () => go('/notifications'), keywords: 'notifications thong bao alerts' },
+      { id: 'n7', label: 'Cài đặt', icon: <IconSettings size={16} />, run: () => go('/settings'), keywords: 'settings' },
     ];
     const actions: Cmd[] = [
       { id: 'a1', label: 'Kết nối tài khoản quản lý (Google)', hint: 'Lệnh', icon: <IconLink size={16} />, run: () => go('/channels?connect=manager'), keywords: 'manager google youtube connect' },

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api';
-import { Account, Identity, UploadJob } from '../types';
+import { Account, Identity } from '../types';
+import { useNotifications, levelStyle } from './Notifications';
+import { fmtRelative } from '../format';
 import { IconBell, IconChevronRight, IconSearch } from './icons';
 
 const LABELS: Record<string, string> = {
@@ -11,6 +13,7 @@ const LABELS: Record<string, string> = {
   upload: 'Đăng video',
   jobs: 'Hàng đợi',
   revenue: 'Doanh thu',
+  notifications: 'Thông báo',
   settings: 'Cài đặt',
 };
 
@@ -86,58 +89,70 @@ export default function AppBar({ onOpenPalette }: { onOpenPalette: () => void })
 }
 
 function NotificationBell() {
-  const [count, setCount] = useState(0);
-  const [items, setItems] = useState<{ text: string; to: string }[]>([]);
+  const { unread, recent, markAllRead, markRead } = useNotifications();
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    let alive = true;
-    const load = async () => {
-      try {
-        const [accounts, jobs] = await Promise.all([
-          api.get<Account[]>('/api/accounts'),
-          api.get<UploadJob[]>('/api/uploads/jobs?limit=100'),
-        ]);
-        if (!alive) return;
-        const needReauth = accounts.filter((a) => a.status === 'error');
-        const errored = jobs.filter((j) => j.status === 'error');
-        const list = [
-          ...needReauth.map((a) => ({ text: `Kênh "${a.name}" cần đăng nhập lại`, to: `/channels/${a.id}` })),
-          ...errored.slice(0, 8).map((j) => ({ text: `Job lỗi: ${j.title}`, to: '/jobs' })),
-        ];
-        setItems(list);
-        setCount(list.length);
-      } catch { /* bỏ qua */ }
-    };
-    load();
-    const t = setInterval(load, 15000);
-    return () => { alive = false; clearInterval(t); };
-  }, []);
+  const openItem = (id: number, link: string | null) => {
+    markRead(id);
+    setOpen(false);
+    if (link) {
+      if (/^https?:\/\//.test(link)) window.open(link, '_blank', 'noopener');
+      else navigate(link);
+    }
+  };
 
   return (
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onBlur={() => setTimeout(() => setOpen(false), 200)}
         className="relative p-2 rounded-lg text-ink-2 hover:text-ink hover:bg-[var(--hover-wash)]"
         title="Thông báo"
       >
         <IconBell size={18} />
-        {count > 0 && <span className="badge-count">{count}</span>}
+        {unread > 0 && <span className="badge-count">{unread > 99 ? '99+' : unread}</span>}
       </button>
       {open && (
-        <div className="absolute right-0 mt-1 w-72 popover z-40">
-          <div className="px-3 py-2 text-xs font-medium text-muted">Thông báo</div>
-          {items.length === 0 ? (
-            <div className="px-3 py-6 text-center text-sm text-muted">Không có cảnh báo nào</div>
-          ) : (
-            items.map((it, i) => (
-              <Link key={i} to={it.to} onMouseDown={(e) => e.preventDefault()} onClick={() => setOpen(false)}
-                className="block px-3 py-2 rounded-lg text-sm text-ink-2 hover:bg-[var(--hover-wash)] hover:text-ink">
-                {it.text}
-              </Link>
-            ))
-          )}
+        <div className="absolute right-0 mt-1 w-80 popover z-40 !p-0 overflow-hidden">
+          <div className="flex items-center justify-between px-3 py-2 border-b border-hairline">
+            <span className="text-xs font-semibold">Thông báo</span>
+            {unread > 0 && (
+              <button onMouseDown={(e) => e.preventDefault()} onClick={markAllRead} className="text-[11px] text-brand hover:underline">
+                Đánh dấu đã đọc
+              </button>
+            )}
+          </div>
+          <div className="max-h-96 overflow-y-auto py-1">
+            {recent.length === 0 ? (
+              <div className="px-3 py-8 text-center text-sm text-muted">Chưa có thông báo nào</div>
+            ) : (
+              recent.map((n) => (
+                <button
+                  key={n.id}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => openItem(n.id, n.link)}
+                  className="w-full text-left flex gap-2.5 px-3 py-2 hover:bg-[var(--hover-wash)]"
+                >
+                  <span className="mt-1.5 w-2 h-2 rounded-full shrink-0" style={{ background: levelStyle(n.level).dot }} />
+                  <span className="min-w-0 flex-1">
+                    <span className={`block text-sm truncate ${n.read ? 'text-ink-2' : 'font-medium text-ink'}`}>{n.title}</span>
+                    {n.body && <span className="block text-[11px] text-muted truncate">{n.body}</span>}
+                    <span className="block text-[10px] text-muted mt-0.5">{fmtRelative(n.createdAt)}</span>
+                  </span>
+                  {!n.read && <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-brand shrink-0" />}
+                </button>
+              ))
+            )}
+          </div>
+          <Link
+            to="/notifications"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => setOpen(false)}
+            className="block text-center text-xs text-brand hover:underline px-3 py-2 border-t border-hairline"
+          >
+            Xem tất cả thông báo
+          </Link>
         </div>
       )}
     </div>

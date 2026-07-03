@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { api } from './api';
 import { ToastProvider } from './components/Toast';
+import { NotificationsProvider } from './components/Notifications';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -10,6 +11,7 @@ import Upload from './pages/Upload';
 import Jobs from './pages/Jobs';
 import Revenue from './pages/Revenue';
 import ManagerReport from './pages/ManagerReport';
+import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
 import StudioChannel from './pages/studio/StudioChannel';
 import ChannelOverview from './pages/studio/ChannelOverview';
@@ -48,6 +50,7 @@ export default function App() {
 
   return (
     <ToastProvider>
+      <NotificationsProvider>
       <Layout username={auth.user.username} onLogout={async () => { await api.post('/api/auth/logout'); reload(); }}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
@@ -62,10 +65,12 @@ export default function App() {
           <Route path="/upload" element={<Upload />} />
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/revenue" element={<Revenue />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>
+      </NotificationsProvider>
     </ToastProvider>
   );
 }

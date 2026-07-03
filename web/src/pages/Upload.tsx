@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { Account } from '../types';
 import { PageHeader, PlatformBadge, Avatar, Spinner } from '../components/bits';
-import { IconFilm, IconUpload } from '../components/icons';
+import { IconFilm, IconUpload, IconUsers } from '../components/icons';
 
 interface VideoItem {
   file: File;
@@ -54,6 +54,33 @@ export default function Upload() {
       return next;
     });
 
+  // Nhóm kênh theo tài khoản quản lý; kênh độc lập gom vào một nhóm riêng.
+  const groups = useMemo(() => {
+    const byId = new Map<number, { key: string; name: string; email: string | null; managed: boolean; channels: Account[] }>();
+    const standalone: Account[] = [];
+    for (const a of accounts) {
+      if (a.identity_id && a.identity) {
+        const g = byId.get(a.identity_id) || {
+          key: `idn-${a.identity_id}`, name: a.identity.name || 'Tài khoản quản lý',
+          email: a.identity.email, managed: true, channels: [],
+        };
+        g.channels.push(a);
+        byId.set(a.identity_id, g);
+      } else standalone.push(a);
+    }
+    const out = [...byId.values()];
+    if (standalone.length) out.push({ key: 'standalone', name: 'Kênh độc lập', email: null, managed: false, channels: standalone });
+    return out;
+  }, [accounts]);
+
+  const setMany = (ids: number[], on: boolean) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => (on ? next.add(id) : next.delete(id)));
+      return next;
+    });
+  const allIds = useMemo(() => accounts.map((a) => a.id), [accounts]);
+
   const jobCount = items.length * selected.size;
   const totalSize = useMemo(() => items.reduce((s, it) => s + it.file.size, 0), [items]);
 
@@ -93,32 +120,65 @@ export default function Upload() {
         subtitle="Mỗi video × mỗi kênh đã chọn = một job trong hàng đợi, tool tự đăng lần lượt"
       />
 
-      {/* Bước 1: chọn kênh */}
+      {/* Bước 1: chọn kênh — nhóm theo tài khoản quản lý */}
       <div className="card px-5 py-4 mb-4">
-        <div className="font-semibold text-sm mb-3">1 · Chọn kênh đăng ({selected.size} đã chọn)</div>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="font-semibold text-sm">1 · Chọn kênh đăng ({selected.size} đã chọn)</div>
+          {accounts.length > 0 && (
+            <div className="flex items-center gap-3 text-xs">
+              <button className="text-brand hover:underline" onClick={() => setMany(allIds, true)}>Chọn tất cả</button>
+              <button className="text-muted hover:text-ink" onClick={() => setMany(allIds, false)} disabled={selected.size === 0}>Bỏ chọn</button>
+            </div>
+          )}
+        </div>
         {accounts.length === 0 ? (
           <div className="text-sm text-muted">
             Chưa có kênh nào hoạt động — <Link to="/channels" className="text-brand hover:underline">kết nối kênh trước</Link>.
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {accounts.map((acc) => {
-              const on = selected.has(acc.id);
+          <div className="space-y-4">
+            {groups.map((g) => {
+              const ids = g.channels.map((c) => c.id);
+              const selCount = ids.filter((id) => selected.has(id)).length;
+              const allOn = selCount === ids.length;
               return (
-                <button
-                  key={acc.id}
-                  onClick={() => toggleAccount(acc.id)}
-                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
-                    on ? 'border-brand bg-brand/5 text-ink' : 'border-hairline bg-surface text-ink-2 hover:bg-page'
-                  }`}
-                >
-                  <Avatar url={acc.avatar_url} name={acc.name} size={22} />
-                  <span className="font-medium">{acc.name}</span>
-                  <PlatformBadge platform={acc.platform} />
-                  <span className={`w-4 h-4 rounded grid place-items-center text-[10px] text-white ${on ? 'bg-brand' : 'bg-hairline'}`}>
-                    {on ? '✓' : ''}
-                  </span>
-                </button>
+                <div key={g.key}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {g.managed && <span className="w-6 h-6 rounded-md bg-brand/10 text-brand grid place-items-center shrink-0"><IconUsers size={13} /></span>}
+                      <span className="text-xs font-semibold text-ink-2 truncate">{g.name}</span>
+                      {g.email && <span className="text-[11px] text-muted truncate">· {g.email}</span>}
+                      <span className="text-[11px] text-muted shrink-0">({selCount}/{ids.length})</span>
+                    </div>
+                    <button
+                      className="text-[11px] font-medium text-brand hover:underline shrink-0"
+                      onClick={() => setMany(ids, !allOn)}
+                    >
+                      {allOn ? 'Bỏ chọn nhóm' : 'Chọn cả nhóm'}
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {g.channels.map((acc) => {
+                      const on = selected.has(acc.id);
+                      return (
+                        <button
+                          key={acc.id}
+                          onClick={() => toggleAccount(acc.id)}
+                          className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                            on ? 'border-brand bg-brand/5 text-ink' : 'border-hairline bg-surface text-ink-2 hover:bg-[var(--hover-wash)]'
+                          }`}
+                        >
+                          <Avatar url={acc.avatar_url} name={acc.name} size={22} />
+                          <span className="font-medium">{acc.name}</span>
+                          <PlatformBadge platform={acc.platform} />
+                          <span className={`w-4 h-4 rounded grid place-items-center text-[10px] text-white ${on ? 'bg-brand' : 'bg-hairline'}`}>
+                            {on ? '✓' : ''}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
           </div>

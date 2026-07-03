@@ -3,8 +3,9 @@ import { api } from '../../api';
 import { ChannelComment } from '../../types';
 import { Avatar, EmptyState, Spinner } from '../../components/bits';
 import { TableSkeleton } from '../../components/Skeletons';
+import { ConfirmDialog } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
-import { IconRefresh, IconUsers } from '../../components/icons';
+import { IconRefresh, IconTrash, IconUsers } from '../../components/icons';
 import { fmtCompact, fmtTime } from '../../format';
 import { useStudio } from './StudioChannel';
 
@@ -19,6 +20,10 @@ export default function ChannelCommunity() {
   const toast = useToast();
   const [data, setData] = useState<CommentsResp | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [replyTo, setReplyTo] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [delTarget, setDelTarget] = useState<ChannelComment | null>(null);
 
   const load = useCallback(() =>
     api.get<CommentsResp>(`/api/accounts/${account.id}/comments`).then(setData).catch((e) => toast.error(e.message)),
@@ -37,6 +42,36 @@ export default function ChannelCommunity() {
       toast.error((e as Error).message);
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const submitReply = async (c: ChannelComment) => {
+    if (!replyText.trim()) return;
+    setSending(true);
+    try {
+      await api.post(`/api/accounts/${account.id}/comments/${encodeURIComponent(c.externalId)}/reply`, { text: replyText.trim() });
+      toast.success('Đã gửi trả lời');
+      setData((d) => d && { ...d, comments: d.comments.map((x) => (x.id === c.id ? { ...x, replied: true } : x)) });
+      setReplyTo(null);
+      setReplyText('');
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const removeComment = async () => {
+    if (!delTarget) return;
+    const c = delTarget;
+    try {
+      await api.delete(`/api/accounts/${account.id}/comments/${encodeURIComponent(c.externalId)}`);
+      toast.success('Đã xóa bình luận');
+      setData((d) => d && { ...d, comments: d.comments.filter((x) => x.id !== c.id) });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setDelTarget(null);
     }
   };
 
@@ -65,7 +100,7 @@ export default function ChannelCommunity() {
       ) : (
         <div className="space-y-2">
           {data.comments.map((c) => (
-            <div key={c.id} className="card px-4 py-3 flex gap-3">
+            <div key={c.id} className="card px-4 py-3 flex gap-3 group">
               <Avatar url={c.authorAvatar} name={c.author} size={36} />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -78,11 +113,47 @@ export default function ChannelCommunity() {
                   {c.likes != null && <span>♥ {fmtCompact(c.likes)}</span>}
                   {c.videoTitle && <span className="truncate">trên: {c.videoTitle}</span>}
                 </div>
+
+                {replyTo === c.id ? (
+                  <div className="mt-2.5">
+                    <textarea
+                      className="input" rows={2} autoFocus
+                      placeholder={`Trả lời ${c.author || ''}…`}
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                    />
+                    <div className="flex items-center gap-2 mt-2">
+                      <button className="btn-primary btn-sm" disabled={sending || !replyText.trim()} onClick={() => submitReply(c)}>
+                        {sending ? <Spinner /> : null} Gửi trả lời
+                      </button>
+                      <button className="btn-ghost btn-sm" onClick={() => { setReplyTo(null); setReplyText(''); }}>Hủy</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 mt-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                    <button className="text-[11px] font-medium text-brand hover:underline" onClick={() => { setReplyTo(c.id); setReplyText(''); }}>
+                      Trả lời
+                    </button>
+                    <button className="text-[11px] font-medium text-neg hover:underline inline-flex items-center gap-1" onClick={() => setDelTarget(c)}>
+                      <IconTrash size={12} /> Xóa
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!delTarget}
+        title="Xóa bình luận?"
+        message={<>Bình luận của <b>{delTarget?.author || 'người dùng'}</b> sẽ bị xóa trên YouTube. Thao tác không thể hoàn tác.</>}
+        confirmLabel="Xóa bình luận"
+        danger
+        onConfirm={removeComment}
+        onClose={() => setDelTarget(null)}
+      />
     </div>
   );
 }

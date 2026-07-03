@@ -448,6 +448,63 @@ export async function deleteVideo(context, account, videoId) {
   }
 }
 
+/** Trả lời một bình luận trong hộp thư Studio (best-effort). */
+export async function replyComment(context, account, commentId, text) {
+  await switchToChannel(context, account).catch(() => {});
+  const ucid = account.external_id && account.external_id.startsWith('UC') ? account.external_id : null;
+  if (!ucid) throw new Error('Chỉ hỗ trợ trả lời bình luận cho kênh YouTube');
+  const page = await context.newPage();
+  try {
+    await page.goto(`https://studio.youtube.com/channel/${ucid}/comments/inbox`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    if (/accounts\.google\.com/.test(page.url())) throw new Error('Phiên đăng nhập YouTube đã hết hạn — hãy kết nối lại');
+    await sleep(3000);
+    const thread = commentId
+      ? page.locator(`ytcp-comment-thread[comment-id="${commentId}"], ytcp-comment[comment-id="${commentId}"]`).first()
+      : page.locator('ytcp-comment-thread, ytcp-comment').first();
+    if (!(await thread.count())) throw new Error('Không tìm thấy bình luận trong hộp thư (có thể đã trôi khỏi danh sách — hãy đồng bộ lại)');
+    await thread.scrollIntoViewIfNeeded({ timeout: 8000 }).catch(() => {});
+    await thread.locator('#reply-button, ytcp-comment-button:has-text("Trả lời"), ytcp-comment-button:has-text("Reply")').first().click({ timeout: 10000 });
+    const box = thread.locator('#contenteditable-root, #textarea, textarea').first();
+    await box.click({ timeout: 8000 });
+    await box.fill(text);
+    await thread.locator('#submit-button, ytcp-button:has-text("Trả lời"), ytcp-button:has-text("Reply")').last().click({ timeout: 10000 });
+    await sleep(2000);
+    return { ok: true };
+  } catch (err) {
+    await page.screenshot({ path: path.join(DEBUG_DIR, `yt_reply_${Date.now()}.png`), fullPage: true }).catch(() => {});
+    throw err;
+  } finally {
+    await page.close().catch(() => {});
+  }
+}
+
+/** Xóa / ẩn một bình luận trong hộp thư Studio (best-effort). */
+export async function deleteComment(context, account, commentId) {
+  await switchToChannel(context, account).catch(() => {});
+  const ucid = account.external_id && account.external_id.startsWith('UC') ? account.external_id : null;
+  if (!ucid) throw new Error('Chỉ hỗ trợ xóa bình luận cho kênh YouTube');
+  if (!commentId) throw new Error('Thiếu mã bình luận');
+  const page = await context.newPage();
+  try {
+    await page.goto(`https://studio.youtube.com/channel/${ucid}/comments/inbox`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    if (/accounts\.google\.com/.test(page.url())) throw new Error('Phiên đăng nhập YouTube đã hết hạn — hãy kết nối lại');
+    await sleep(3000);
+    const thread = page.locator(`ytcp-comment-thread[comment-id="${commentId}"], ytcp-comment[comment-id="${commentId}"]`).first();
+    if (!(await thread.count())) throw new Error('Không tìm thấy bình luận trong hộp thư (có thể đã bị xóa hoặc trôi khỏi danh sách)');
+    await thread.scrollIntoViewIfNeeded({ timeout: 8000 }).catch(() => {});
+    await thread.locator('#action-menu, #overflow-menu, #menu-button, ytcp-comment-action-button').first().click({ timeout: 10000 });
+    await page.locator('tp-yt-paper-item:has-text("Xóa"), tp-yt-paper-item:has-text("Remove"), tp-yt-paper-item:has-text("Delete")').first().click({ timeout: 8000 });
+    await page.locator('#confirm-button, ytcp-button:has-text("Xóa"), ytcp-button:has-text("Remove")').first().click({ timeout: 8000 }).catch(() => {});
+    await sleep(1500);
+    return { ok: true };
+  } catch (err) {
+    await page.screenshot({ path: path.join(DEBUG_DIR, `yt_delcomment_${Date.now()}.png`), fullPage: true }).catch(() => {});
+    throw err;
+  } finally {
+    await page.close().catch(() => {});
+  }
+}
+
 /** Tải video xuống qua Studio (best-effort; owner mới tải được). */
 export async function downloadVideo(context, account, videoId, destPath) {
   await switchToChannel(context, account).catch(() => {});

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { api } from '../api';
-import { Account, UploadJob } from '../types';
+import { Account, Identity, UploadJob } from '../types';
 import { IconBell, IconChevronRight, IconSearch } from './icons';
 
 const LABELS: Record<string, string> = {
   '': 'Tổng quan',
   channels: 'Kênh',
+  managers: 'Kênh',
   upload: 'Đăng video',
   jobs: 'Hàng đợi',
   revenue: 'Doanh thu',
@@ -18,7 +19,9 @@ export default function AppBar({ onOpenPalette }: { onOpenPalette: () => void })
   const loc = useLocation();
   const parts = loc.pathname.split('/').filter(Boolean);
   const channelId = parts[0] === 'channels' ? parts[1] : undefined;
+  const managerId = parts[0] === 'managers' ? parts[1] : undefined;
   const [channelName, setChannelName] = useState<string | null>(null);
+  const [managerName, setManagerName] = useState<string | null>(null);
 
   // Chỉ nạp tên kênh khi ĐỔI kênh — không nạp lại khi chuyển tab con trong Studio.
   useEffect(() => {
@@ -29,12 +32,21 @@ export default function AppBar({ onOpenPalette }: { onOpenPalette: () => void })
     }
   }, [channelId]);
 
+  useEffect(() => {
+    if (managerId) {
+      api.get<Identity[]>('/api/identities')
+        .then((list) => setManagerName(list.find((i) => String(i.id) === managerId)?.name || null))
+        .catch(() => setManagerName(null));
+    } else setManagerName(null);
+  }, [managerId]);
+
   const crumbs: { label: string; to?: string }[] = [];
   if (parts.length === 0) {
     crumbs.push({ label: 'Tổng quan' });
   } else {
-    crumbs.push({ label: LABELS[parts[0]] || parts[0], to: `/${parts[0]}` });
+    crumbs.push({ label: LABELS[parts[0]] || parts[0], to: parts[0] === 'managers' ? '/channels' : `/${parts[0]}` });
     if (parts[0] === 'channels' && parts[1]) crumbs.push({ label: channelName || 'Chi tiết kênh' });
+    if (parts[0] === 'managers' && parts[1]) crumbs.push({ label: `Báo cáo · ${managerName || 'Tài khoản quản lý'}` });
   }
 
   return (

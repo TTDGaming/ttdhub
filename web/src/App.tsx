@@ -9,6 +9,7 @@ import Channels from './pages/Channels';
 import Upload from './pages/Upload';
 import Jobs from './pages/Jobs';
 import Revenue from './pages/Revenue';
+import ManagerReport from './pages/ManagerReport';
 import Settings from './pages/Settings';
 import StudioChannel from './pages/studio/StudioChannel';
 import ChannelOverview from './pages/studio/ChannelOverview';
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="analytics" element={<ChannelAnalytics />} />
             <Route path="community" element={<ChannelCommunity />} />
           </Route>
+          <Route path="/managers/:id" element={<ManagerReport />} />
           <Route path="/upload" element={<Upload />} />
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/revenue" element={<Revenue />} />

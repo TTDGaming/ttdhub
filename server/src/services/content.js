@@ -131,6 +131,37 @@ export function getComments(accountId) {
   return db.prepare('SELECT * FROM comments WHERE account_id = ? ORDER BY id DESC').all(accountId);
 }
 
+export async function replyComment(accountId, commentId, text) {
+  const account = getAccount(accountId);
+  const platform = getPlatform(account.platform);
+  if (!platform.replyComment) throw new Error('Nền tảng chưa hỗ trợ trả lời bình luận qua tool');
+  if (!text || !text.trim()) throw new Error('Nội dung trả lời trống');
+  const profileKey = accountKey(account);
+  const context = await acquireContext(profileKey);
+  try {
+    await platform.replyComment(context, account, commentId, text.trim());
+    db.prepare('UPDATE comments SET replied = 1 WHERE account_id = ? AND comment_id = ?').run(accountId, commentId);
+    return { ok: true };
+  } finally {
+    await releaseContext(profileKey);
+  }
+}
+
+export async function deleteComment(accountId, commentId) {
+  const account = getAccount(accountId);
+  const platform = getPlatform(account.platform);
+  if (!platform.deleteComment) throw new Error('Nền tảng chưa hỗ trợ xóa bình luận qua tool');
+  const profileKey = accountKey(account);
+  const context = await acquireContext(profileKey);
+  try {
+    await platform.deleteComment(context, account, commentId);
+    db.prepare('DELETE FROM comments WHERE account_id = ? AND comment_id = ?').run(accountId, commentId);
+    return { ok: true };
+  } finally {
+    await releaseContext(profileKey);
+  }
+}
+
 export async function deleteVideo(accountId, videoId) {
   const account = getAccount(accountId);
   const platform = getPlatform(account.platform);

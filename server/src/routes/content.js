@@ -96,3 +96,15 @@ contentRouter.post('/:id/comments/refresh', asyncHandler(async (req, res) => {
   const r = await content.refreshComments(acc.id);
   res.json({ ok: true, ...r });
 }));
+
+contentRouter.post('/:id/comments/:commentId/reply', asyncHandler(async (req, res) => {
+  const acc = loadAccount(req);
+  await content.replyComment(acc.id, req.params.commentId, (req.body || {}).text);
+  res.json({ ok: true });
+}));
+
+contentRouter.delete('/:id/comments/:commentId', asyncHandler(async (req, res) => {
+  const acc = loadAccount(req);
+  await content.deleteComment(acc.id, req.params.commentId);
+  res.json({ ok: true });
+}));

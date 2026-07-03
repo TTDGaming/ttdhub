@@ -136,6 +136,52 @@ export interface RevenueEntry {
   created_at: number;
 }
 
+export interface ManagerReportChannel {
+  id: number;
+  name: string | null;
+  platform: Platform;
+  avatarUrl: string | null;
+  role: 'owner' | 'manager' | 'self';
+  monetized: 'yes' | 'no' | 'unknown';
+  status: string;
+  views: number | null;
+  followers: number | null;
+  videos: number | null;
+  views48h: number;
+  followers48h: number;
+  est30: number | null;
+  recordedThisMonth: number;
+}
+
+export interface ManagerReport {
+  identity: {
+    id: number;
+    name: string | null;
+    email: string | null;
+    avatarUrl: string | null;
+    platform: Platform;
+    channelCount: number;
+    lastSyncedAt: number | null;
+  };
+  currency: string;
+  thisMonth: string;
+  totals: {
+    channels: number;
+    managed: number;
+    totalViews: number;
+    totalFollowers: number;
+    totalVideos: number;
+    views48h: number;
+    followers48h: number;
+    est30: number;
+    recordedThisMonth: number;
+    recorded12m: number;
+    monetizedCount: number;
+  };
+  monthly: { month: string; total: number }[];
+  channels: ManagerReportChannel[];
+}
+
 export interface Overview {
   accountCount: number;
   totalViews: number;

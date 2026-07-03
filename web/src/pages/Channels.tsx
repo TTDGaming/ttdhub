@@ -7,7 +7,7 @@ import { CardGridSkeleton } from '../components/Skeletons';
 import { ConfirmDialog } from '../components/Modal';
 import ConnectModal from '../components/ConnectModal';
 import { useToast } from '../components/Toast';
-import { IconChannels, IconLink, IconPlus, IconRefresh, IconSearch, IconTrash, IconUsers } from '../components/icons';
+import { IconChannels, IconChart, IconLink, IconPlus, IconRefresh, IconSearch, IconTrash, IconUsers } from '../components/icons';
 import { fmtCompact, fmtDelta, PLATFORM_LABEL } from '../format';
 
 const SINGLE = [
@@ -167,6 +167,7 @@ export default function Channels() {
                   {identity.status === 'error' && <span className="chip chip-bad shrink-0">Cần đăng nhập lại</span>}
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
+                  <Link to={`/managers/${identity.id}`} className="btn-ghost btn-sm"><IconChart size={14} /> Báo cáo</Link>
                   <button className="btn-ghost btn-sm" onClick={() => rediscover(identity)} disabled={rediscovering === identity.id}>
                     {rediscovering === identity.id ? <Spinner /> : <IconRefresh size={14} />} Quét kênh
                   </button>

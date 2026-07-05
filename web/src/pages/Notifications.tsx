@@ -92,7 +92,7 @@ export default function Notifications() {
       ) : items.length === 0 ? (
         <EmptyState icon={<IconBell />} title="Không có thông báo" hint="Các sự kiện quan trọng sẽ xuất hiện ở đây." />
       ) : (
-        <div className="card divide-y divide-[var(--hairline)] overflow-hidden">
+        <div className="card divide-y divide-[var(--hairline)] overflow-hidden stagger-in">
           {items.map((n) => (
             <div key={n.id} className="flex items-start gap-3 px-4 py-3 group hover:bg-[var(--hover-wash)]">
               <span className="mt-1.5 w-2.5 h-2.5 rounded-full shrink-0" style={{ background: levelStyle(n.level).dot }} title={levelStyle(n.level).label} />

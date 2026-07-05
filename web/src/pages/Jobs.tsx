@@ -73,7 +73,7 @@ export default function Jobs() {
                 <th className="px-5 py-2.5 font-medium text-right">Thao tác</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="stagger-in">
               {shown.map((j) => (
                 <tr key={j.id} className="border-b border-hairline last:border-0 align-top row-hover">
                   <td className="px-5 py-3">

@@ -82,6 +82,9 @@ export function TimeAreaChart({ data, dataKey, name, color, height = 260 }: {
           dot={false}
           activeDot={{ r: 4, strokeWidth: 2, stroke: 'var(--surface-1)' }}
           connectNulls
+          isAnimationActive
+          animationDuration={900}
+          animationEasing="ease-out"
         />
       </AreaChart>
     </ResponsiveContainer>
@@ -122,7 +125,8 @@ export function TimeBarChart({ data, dataKey, name, color, height = 220, xKey = 
           content={<ChartTooltip labelFormatter={xFormatter} valueFormatter={valueFormatter} />}
           cursor={{ fill: 'var(--hover-wash)' }}
         />
-        <Bar dataKey={dataKey} name={name} fill={color} radius={[4, 4, 0, 0]} maxBarSize={28} />
+        <Bar dataKey={dataKey} name={name} fill={color} radius={[4, 4, 0, 0]} maxBarSize={28}
+          isAnimationActive animationDuration={800} animationEasing="ease-out" />
       </BarChart>
     </ResponsiveContainer>
   );

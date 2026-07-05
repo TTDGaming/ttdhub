@@ -47,10 +47,10 @@ export default function Revenue() {
         }
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Tháng này (ghi nhận)" value={fmtMoney(data.totals.recordedThisMonth, cur)} hint={fmtMonth(data.thisMonth)} />
-        <StatCard label="Ước tính 30 ngày" value={fmtMoney(data.totals.est30, cur)} hint="RPM × view 30 ngày" />
-        <StatCard label="Tổng 12 tháng" value={fmtMoney(data.totals.recorded12m, cur)} hint="đã ghi nhận" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 stagger-in">
+        <StatCard label="Tháng này (ghi nhận)" count={data.totals.recordedThisMonth} format={(n) => fmtMoney(n, cur)} hint={fmtMonth(data.thisMonth)} />
+        <StatCard label="Ước tính 30 ngày" count={data.totals.est30} format={(n) => fmtMoney(n, cur)} hint="RPM × view 30 ngày" />
+        <StatCard label="Tổng 12 tháng" count={data.totals.recorded12m} format={(n) => fmtMoney(n, cur)} hint="đã ghi nhận" />
         <StatCard
           label="Kênh đã BKT"
           value={`${data.totals.monetizedCount}/${data.totals.accountCount}`}

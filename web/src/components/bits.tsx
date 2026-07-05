@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { PLATFORM_COLOR, PLATFORM_LABEL, fmtDelta } from '../format';
+import { AnimatedNumber } from './AnimatedNumber';
 
 export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: ReactNode }) {
   return (
@@ -13,20 +14,25 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
   );
 }
 
-export function StatCard({ label, value, delta, hint }: {
+export function StatCard({ label, value, count, format, delta, hint }: {
   label: string;
-  value: ReactNode;
+  value?: ReactNode;
+  /** Nếu truyền count (+format), số sẽ đếm động khi xuất hiện / cập nhật. */
+  count?: number;
+  format?: (n: number) => string;
   delta?: number | null;
   hint?: string;
 }) {
   return (
-    <div className="card px-5 py-4">
+    <div className="card lift px-5 py-4">
       <div className="text-xs font-medium text-muted uppercase tracking-wide">{label}</div>
-      <div className="text-2xl font-semibold mt-1.5">{value}</div>
+      <div className="text-2xl font-semibold mt-1.5 tabular-nums">
+        {count != null ? <AnimatedNumber value={count} format={format} /> : value}
+      </div>
       <div className="mt-1 text-xs flex items-center gap-1.5 min-h-[16px]">
         {delta != null && delta !== 0 && (
-          <span className={delta > 0 ? 'text-pos font-medium' : 'text-neg font-medium'}>
-            {delta > 0 ? '▲' : '▼'} {fmtDelta(delta)}
+          <span className={`inline-flex items-center gap-0.5 ${delta > 0 ? 'text-pos font-medium' : 'text-neg font-medium'}`}>
+            <span className="animate-pop">{delta > 0 ? '▲' : '▼'}</span> {fmtDelta(delta)}
           </span>
         )}
         {hint && <span className="text-muted">{hint}</span>}
@@ -77,7 +83,7 @@ export function Avatar({ url, name, size = 36 }: { url: string | null; name: str
 export function Spinner({ className = '' }: { className?: string }) {
   return (
     <span
-      className={`inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin ${className}`}
+      className={`inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full spin-smooth ${className}`}
     />
   );
 }
@@ -86,9 +92,9 @@ export function EmptyState({ icon, title, hint, action }: {
   icon: ReactNode; title: string; hint?: string; action?: ReactNode;
 }) {
   return (
-    <div className="card grid place-items-center py-14 text-center">
+    <div className="card grid place-items-center py-14 text-center animate-in">
       <div>
-        <div className="text-muted mb-3 grid place-items-center [&>svg]:w-10 [&>svg]:h-10 text-4xl">{icon}</div>
+        <div className="text-muted mb-3 grid place-items-center float-icon [&>svg]:w-10 [&>svg]:h-10 text-4xl">{icon}</div>
         <div className="font-medium">{title}</div>
         {hint && <div className="text-sm text-muted mt-1 max-w-sm mx-auto">{hint}</div>}
         {action && <div className="mt-4">{action}</div>}

@@ -48,18 +48,21 @@ export default function Dashboard() {
         subtitle="Toàn bộ kênh của bạn trong một màn hình — số liệu cập nhật tự động"
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <StatCard label="Kênh đã kết nối" value={data.accountCount} hint="YouTube · TikTok · Facebook" />
-        <StatCard label="View 48 giờ" value={fmtCompact(data.views48h)} delta={data.views48h} hint="so với 48h trước" />
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6 stagger-in">
+        <StatCard label="Kênh đã kết nối" count={data.accountCount} format={(n) => String(Math.round(n))} hint="YouTube · TikTok · Facebook" />
+        <StatCard label="View 48 giờ" count={data.views48h} format={fmtCompact} delta={data.views48h} hint="so với 48h trước" />
         <StatCard label="Follower tăng 48h" value={fmtDelta(data.followers48h)} delta={data.followers48h} hint="tất cả các kênh" />
         <StatCard
           label="Doanh thu tháng này"
-          value={revenue ? fmtMoney(revenue.totals.recordedThisMonth, revenue.currency) : '—'}
+          count={revenue ? revenue.totals.recordedThisMonth : undefined}
+          format={(n) => fmtMoney(n, revenue?.currency)}
+          value={revenue ? undefined : '—'}
           hint={revenue ? `ước tính 30d ${fmtMoney(revenue.totals.est30, revenue.currency)}` : ''}
         />
         <StatCard
           label="Hàng đợi đăng"
-          value={`${data.jobs.uploading + data.jobs.queued}`}
+          count={data.jobs.uploading + data.jobs.queued}
+          format={(n) => String(Math.round(n))}
           hint={`${data.jobs.done48h} xong 48h · ${data.jobs.errors} lỗi`}
         />
       </div>
@@ -106,7 +109,7 @@ export default function Dashboard() {
                 <th className="px-5 py-2.5 font-medium text-right">Xu hướng 48h</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="stagger-in">
               {data.accounts.map((acc) => (
                 <tr key={acc.id} className="border-b border-hairline last:border-0 row-hover">
                   <td className="px-5 py-3">

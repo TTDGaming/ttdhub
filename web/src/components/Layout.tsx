@@ -89,13 +89,13 @@ export default function Layout({ username, onLogout, children }: {
                     to={to}
                     end={to === '/'}
                     className={({ isActive }) =>
-                      `relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2 text-sm transition-colors ${
-                        isActive ? 'bg-brand text-white font-medium' : 'hover:bg-white/5'
+                      `nav-link relative flex items-center gap-3 rounded-lg pl-3 pr-2 py-2 text-sm transition-colors ${
+                        isActive ? 'is-active bg-brand text-white font-medium' : 'hover:bg-white/5'
                       }`
                     }
                     style={({ isActive }) => (isActive ? {} : { color: 'var(--sidebar-ink)' })}
                   >
-                    <Icon size={17} className="shrink-0 opacity-90" />
+                    <Icon size={17} className="shrink-0 opacity-90 transition-transform duration-200 group-hover:scale-110" />
                     <span className="flex-1">{label}</span>
                     {badge === 'unread' && unread > 0 && (
                       <span className="min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold text-white grid place-items-center shrink-0" style={{ background: 'var(--neg)' }}>

@@ -96,7 +96,7 @@ export default function ChannelContent() {
                 <th className="text-right">Thao tác</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="stagger-in">
               {data.videos.map((v) => (
                 <tr key={v.id}>
                   <td>

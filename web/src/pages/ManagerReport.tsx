@@ -43,12 +43,12 @@ export default function ManagerReport() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <StatCard label="Tổng view" value={fmtCompact(t.totalViews)} delta={t.views48h} hint="Δ 48h" />
-        <StatCard label="Tổng follower" value={fmtCompact(t.totalFollowers)} delta={t.followers48h} hint="Δ 48h" />
-        <StatCard label="Tổng video" value={fmtCompact(t.totalVideos)} />
-        <StatCard label="Doanh thu tháng này" value={fmtMoney(t.recordedThisMonth, cur)} hint={fmtMonth(data.thisMonth)} />
-        <StatCard label="Ước tính 30 ngày" value={fmtMoney(t.est30, cur)} hint="RPM × view 30d" />
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6 stagger-in">
+        <StatCard label="Tổng view" count={t.totalViews} format={fmtCompact} delta={t.views48h} hint="Δ 48h" />
+        <StatCard label="Tổng follower" count={t.totalFollowers} format={fmtCompact} delta={t.followers48h} hint="Δ 48h" />
+        <StatCard label="Tổng video" count={t.totalVideos} format={fmtCompact} />
+        <StatCard label="Doanh thu tháng này" count={t.recordedThisMonth} format={(n) => fmtMoney(n, cur)} hint={fmtMonth(data.thisMonth)} />
+        <StatCard label="Ước tính 30 ngày" count={t.est30} format={(n) => fmtMoney(n, cur)} hint="RPM × view 30d" />
       </div>
 
       <div className="card px-5 py-4 mb-6">
@@ -85,7 +85,7 @@ export default function ManagerReport() {
                 <th className="text-right">Tháng này</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="stagger-in">
               {data.channels.map((c) => (
                 <tr key={c.id}>
                   <td>

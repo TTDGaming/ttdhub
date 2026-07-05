@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { Account, Identity } from '../types';
@@ -91,7 +91,20 @@ export default function AppBar({ onOpenPalette }: { onOpenPalette: () => void })
 function NotificationBell() {
   const { unread, recent, markAllRead, markRead } = useNotifications();
   const [open, setOpen] = useState(false);
+  const [ring, setRing] = useState(false);
+  const prevUnread = useRef(unread);
   const navigate = useNavigate();
+
+  // Rung chuông khi có thông báo mới (unread tăng).
+  useEffect(() => {
+    if (unread > prevUnread.current) {
+      setRing(true);
+      const t = setTimeout(() => setRing(false), 700);
+      return () => clearTimeout(t);
+    }
+    prevUnread.current = unread;
+  }, [unread]);
+  useEffect(() => { prevUnread.current = unread; }, [unread]);
 
   const openItem = (id: number, link: string | null) => {
     markRead(id);
@@ -110,8 +123,8 @@ function NotificationBell() {
         className="relative p-2 rounded-lg text-ink-2 hover:text-ink hover:bg-[var(--hover-wash)]"
         title="Thông báo"
       >
-        <IconBell size={18} />
-        {unread > 0 && <span className="badge-count">{unread > 99 ? '99+' : unread}</span>}
+        <IconBell size={18} style={ring ? { animation: 'wiggle 0.6s var(--ease-out)', transformOrigin: 'top center' } : undefined} />
+        {unread > 0 && <span key={unread} className="badge-count">{unread > 99 ? '99+' : unread}</span>}
       </button>
       {open && (
         <div className="absolute right-0 mt-1 w-80 popover z-40 !p-0 overflow-hidden">

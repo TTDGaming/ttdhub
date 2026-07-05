@@ -179,7 +179,7 @@ export default function Channels() {
                   Chưa phát hiện kênh nào cho tài khoản này — bấm <b>Quét kênh</b> sau khi đã được cấp quyền quản lý.
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 stagger-in">
                   {channels.map((acc) => <ChannelCard key={acc.id} acc={acc} />)}
                 </div>
               )}
@@ -189,7 +189,7 @@ export default function Channels() {
           {standalone.length > 0 && (
             <section>
               {managed.length > 0 && <div className="font-semibold text-sm mb-3 text-ink-2">Kênh độc lập</div>}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 stagger-in">
                 {standalone.map((acc) => <ChannelCard key={acc.id} acc={acc} />)}
               </div>
             </section>

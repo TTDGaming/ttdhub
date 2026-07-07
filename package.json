@@ -1,0 +1,17 @@
+{
+  "name": "ms-hub",
+  "version": "1.0.0",
+  "description": "MS Hub - Quản lý đa kênh YouTube / Facebook / TikTok: đăng video hàng loạt, theo dõi số liệu, biểu đồ 48h.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "npm install --prefix server && npm install --prefix web",
+    "build": "npm run build --prefix web",
+    "dev:server": "node server/src/index.js",
+    "dev:web": "npm run dev --prefix web",
+    "start": "node server/src/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
